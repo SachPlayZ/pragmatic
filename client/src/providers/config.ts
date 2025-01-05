@@ -1,9 +1,14 @@
 import { http, createConfig } from "wagmi";
-import { mainnet, sepolia, baseSepolia } from "wagmi/chains";
+import { mainnet, sepolia, baseSepolia, avalancheFuji } from "wagmi/chains";
 import { connectors } from "./wallets";
 import { Chain } from "@rainbow-me/rainbowkit";
 
-const chains: readonly [Chain, ...Chain[]] = [sepolia, mainnet, baseSepolia];
+const chains: readonly [Chain, ...Chain[]] = [
+  sepolia,
+  mainnet,
+  baseSepolia,
+  avalancheFuji,
+];
 
 export const config = createConfig({
   chains,
@@ -12,5 +17,6 @@ export const config = createConfig({
     [mainnet.id]: http(),
     [sepolia.id]: http(),
     [baseSepolia.id]: http(),
+    [avalancheFuji.id]: http(),
   },
 });
