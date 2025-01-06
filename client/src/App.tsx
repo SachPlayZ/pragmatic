@@ -7,7 +7,7 @@ import Anon from "./pages/Anon";
 const App = () => {
   return (
     <BrowserRouter>
-      <Navbar />
+      {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/anon" element={<Anon />} />

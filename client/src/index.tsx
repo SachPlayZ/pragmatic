@@ -21,11 +21,11 @@ root.render(
           modalSize="wide"
           initialChain={43113}
           theme={darkTheme({
-            accentColor: "#ff8000",
-            accentColorForeground: "white",
-            borderRadius: "small",
+            accentColor: "#9EF01A",
+            accentColorForeground: "#0A1A1F",
+            borderRadius: "large",
             fontStack: "system",
-            overlayBlur: "small",
+            overlayBlur: "large",
           })}
         >
           <StrictMode>
