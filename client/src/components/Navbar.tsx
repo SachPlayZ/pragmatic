@@ -1,49 +1,55 @@
-import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { CuboidIcon as Cube } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-const Navbar: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-
+const Navbar = () => {
   return (
-    <nav className="bg-gray-900 p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-8">
-          {/* Logo */}
-          <img src="/lotus.svg" alt="Logo" className="h-10" />
-
-          {/* Navigation Items */}
-          <div className="hidden md:flex items-center space-x-6">
-            <a
-              href=""
-              className="text-white hover:text-transparent bg-clip-text hover:bg-gradient-to-r from-[#ff8000] to-[#ff3300] transition-all duration-300 gradient-text"
+    <header className="fixed top-0 w-full z-50">
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 h-20"
+      >
+        <div className="w-full h-full backdrop-blur-md bg-[#0A1A1F]/60 rounded-2xl mt-4 px-6 flex items-center justify-between border border-white/10">
+          <Link to="/" className="flex items-center space-x-2">
+            <motion.div
+              whileHover={{ rotate: 180 }}
+              transition={{ duration: 0.3 }}
             >
-              Browse Hotels
-            </a>
-          </div>
+              <Cube className="h-8 w-8 text-[#D0FD3E]" />
+            </motion.div>
+            <span className="text-white font-bold text-xl">TOKENX</span>
+          </Link>
+          <nav className="hidden md:flex items-center space-x-8">
+            {["Home", "Properties", "How it Works", "About Us"].map((item) => (
+              <motion.div
+                key={item}
+                whileHover={{ y: -2 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link
+                  to="#"
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  {item}
+                </Link>
+              </motion.div>
+            ))}
+          </nav>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {/* <Link
+                to="#"
+                className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F] px-6 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-[#D0FD3E]/20 transition-all"
+              >
+                Connect Wallet
+              </Link> */}
+            <ConnectButton accountStatus="avatar" chainStatus="icon" />
+          </motion.div>
         </div>
-
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search hotels..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-transparent gradient-focus-ring caret-orange-600"
-            />
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-600"
-              size={18}
-            />
-          </div>
-        </div>
-
-        {/* Connect Wallet Button */}
-        <ConnectButton chainStatus={"none"} />
-      </div>
-    </nav>
+      </motion.div>
+    </header>
   );
 };
 
