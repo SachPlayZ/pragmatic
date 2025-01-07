@@ -30,20 +30,22 @@ const Navbar = () => {
 
           {/* Navigation Links - Center Column */}
           <nav className="hidden md:flex items-center justify-center space-x-8">
-            {["Home", "Properties", "How it Works", "About Us"].map((item) => (
-              <motion.div
-                key={item}
-                whileHover={{ y: -2 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link
-                  to="#"
-                  className="text-white/80 hover:text-white transition-colors"
+            {["Properties", "Listings", "How it Works", "Dashboard"].map(
+              (item) => (
+                <motion.div
+                  key={item}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  {item}
-                </Link>
-              </motion.div>
-            ))}
+                  <Link
+                    to={`/${item.toLowerCase().replace(" ", "-")}`}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </motion.div>
+              )
+            )}
           </nav>
 
           {/* Connect Wallet Button - Right Column */}
