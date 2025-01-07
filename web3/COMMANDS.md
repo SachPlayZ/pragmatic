@@ -5,4 +5,4 @@ deploy:
 npx hardhat run ignition/modules/PropertyToken.ts --network fuji
 
 verify:
-npx hardhat verify --network fuji 0xea1d24996dC82DD1DC25460090df048Fb51E26bD
+npx hardhat verify --network fuji 0xA95723055A1EC9F1B0bF295664979A2822C2c829

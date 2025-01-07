@@ -4,9 +4,14 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
+/**
+ * @title PropertyToken
+ * @dev A smart contract for tokenizing real estate properties and managing investments
+ * The contract allows property owners to list their properties and investors to purchase tokens
+ * representing ownership shares. It includes features for return rate voting and property resale.
+ */
+contract PropertyToken is ERC20, Ownable {
     struct Property {
         address owner;
         uint256 totalValue;
@@ -44,6 +49,10 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
     mapping(uint256 => uint256) public propertyLiquidity;
     // Track total weighted votes per property
     mapping(uint256 => uint256) public totalWeightedVotes;
+    // Array to store all property IDs
+    uint256[] private allPropertyIds;
+    // Array to store IDs of properties on sale
+    uint256[] private propertiesOnSale;
 
     event PropertyListed(
         uint256 indexed propertyId,
@@ -72,8 +81,13 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         uint256 returnAmount
     );
 
-    constructor() ERC20("Property Token", "PROP") {}
+    constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {}
 
+    /**
+     * @dev Lists a new property for tokenization
+     * @param _totalValue The total value of the property in wei
+     * @param _totalTokens The total number of tokens to be issued for the property
+     */
     function listProperty(uint256 _totalValue, uint256 _totalTokens) external {
         require(_totalValue > 0, "Invalid property value");
         require(_totalTokens > 0, "Invalid token amount");
@@ -94,14 +108,20 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         });
 
         propertyLiquidity[propertyId] = _totalValue;
+        allPropertyIds.push(propertyId);
 
         emit PropertyListed(propertyId, msg.sender, _totalValue, _totalTokens);
     }
 
+    /**
+     * @dev Allows users to invest in a property and propose a return rate
+     * @param _propertyId The ID of the property to invest in
+     * @param _proposedReturnRate The proposed return rate in basis points
+     */
     function invest(
         uint256 _propertyId,
         uint256 _proposedReturnRate
-    ) external payable nonReentrant {
+    ) external payable {
         Property storage property = properties[_propertyId];
         require(property.isListed, "Property not listed");
         require(!property.returnRateFinalized, "Return rate already finalized");
@@ -119,7 +139,6 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
             "Exceeds available tokens"
         );
 
-        // Update or create investment
         Investment storage investment = investments[msg.sender][_propertyId];
         if (!investment.exists) {
             investments[msg.sender][_propertyId] = Investment({
@@ -130,7 +149,6 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
                 exists: true
             });
         } else {
-            // Update existing investment with weighted average of return rates
             uint256 totalTokens = investment.tokenAmount + tokenAmount;
             uint256 weightedOldRate = investment.proposedReturnRate *
                 investment.tokenAmount;
@@ -142,7 +160,6 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
             investment.investmentAmount += msg.value;
         }
 
-        // Update property stats
         property.totalInvestedTokens += tokenAmount;
         updateWeightedReturnRate(_propertyId, tokenAmount, _proposedReturnRate);
 
@@ -157,6 +174,12 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         );
     }
 
+    /**
+     * @dev Updates the weighted return rate for a property based on new investment
+     * @param _propertyId The ID of the property
+     * @param _tokenAmount The amount of tokens invested
+     * @param _proposedRate The proposed return rate
+     */
     function updateWeightedReturnRate(
         uint256 _propertyId,
         uint256 _tokenAmount,
@@ -166,12 +189,10 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         uint256 weightedVote = _tokenAmount * _proposedRate;
         totalWeightedVotes[_propertyId] += weightedVote;
 
-        // Update final return rate based on weighted average
         property.finalReturnRate =
             totalWeightedVotes[_propertyId] /
             property.totalInvestedTokens;
 
-        // Check if all tokens are invested and finalize return rate
         if (property.totalInvestedTokens == property.totalTokens) {
             property.returnRateFinalized = true;
             property.resalePrice = calculateResalePrice(_propertyId);
@@ -179,6 +200,11 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev Calculates the resale price for a property based on return rate
+     * @param _propertyId The ID of the property
+     * @return The calculated resale price
+     */
     function calculateResalePrice(
         uint256 _propertyId
     ) internal view returns (uint256) {
@@ -188,10 +214,15 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         return property.totalValue + returnAmount;
     }
 
+    /**
+     * @dev Allows token holders to burn their tokens and receive their share of property value
+     * @param _propertyId The ID of the property
+     * @param _amount The amount of tokens to burn
+     */
     function burnTokensFromProperty(
         uint256 _propertyId,
         uint256 _amount
-    ) external nonReentrant {
+    ) external {
         Property storage property = properties[_propertyId];
         require(property.returnRateFinalized, "Return rate not finalized");
         require(property.forSale, "Property not for sale");
@@ -210,7 +241,6 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
             "Insufficient liquidity"
         );
 
-        // Update state
         investment.tokenAmount -= _amount;
         burnLimits[_propertyId] -= _amount;
         propertyLiquidity[_propertyId] -= shareOfResale;
@@ -221,6 +251,10 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
         emit TokensBurned(msg.sender, _propertyId, _amount, shareOfResale);
     }
 
+    /**
+     * @dev Lists a property for resale
+     * @param _propertyId The ID of the property to list for resale
+     */
     function listForResale(uint256 _propertyId) external {
         Property storage property = properties[_propertyId];
         require(msg.sender == property.owner, "Not property owner");
@@ -229,38 +263,109 @@ contract PropertyToken is ERC20, Ownable, ReentrancyGuard {
 
         property.forSale = true;
         property.resalePrice = calculateResalePrice(_propertyId);
+        propertiesOnSale.push(_propertyId);
     }
 
-    // View functions
-    function getProperty(
+    /**
+     * @dev Gets all properties that have been listed
+     * @return An array of property IDs
+     */
+    function getAllListings() external view returns (uint256[] memory) {
+        return allPropertyIds;
+    }
+
+    /**
+     * @dev Gets all properties that are currently on sale
+     * @return An array of property IDs
+     */
+    function getAllPropertiesOnSale() external view returns (uint256[] memory) {
+        return propertiesOnSale;
+    }
+
+    /**
+     * @dev Gets detailed information about a specific listing
+     * @param _propertyId The ID of the property
+     * @return owner The address of the property owner
+     * @return totalValue The total value of the property
+     * @return totalTokens The total number of tokens issued
+     * @return isListed Whether the property is listed
+     * @return rentalIncome The rental income generated
+     * @return resalePrice The resale price if listed for resale
+     * @return forSale Whether the property is for sale
+     */
+    function getListingById(
         uint256 _propertyId
     )
         external
         view
         returns (
-            bool isListed,
+            address owner,
             uint256 totalValue,
             uint256 totalTokens,
-            uint256 totalInvestedTokens,
-            uint256 finalReturnRate,
-            bool returnRateFinalized,
+            bool isListed,
+            uint256 rentalIncome,
             uint256 resalePrice,
             bool forSale
         )
     {
         Property storage property = properties[_propertyId];
+        require(property.isListed, "Property not listed");
+
         return (
-            property.isListed,
+            property.owner,
             property.totalValue,
             property.totalTokens,
-            property.totalInvestedTokens,
-            property.finalReturnRate,
-            property.returnRateFinalized,
+            property.isListed,
+            property.rentalIncome,
             property.resalePrice,
             property.forSale
         );
     }
 
+    /**
+     * @dev Gets detailed information about a property that is on sale
+     * @param _propertyId The ID of the property
+     * @return owner The address of the property owner
+     * @return totalValue The total value of the property
+     * @return resalePrice The resale price
+     * @return finalReturnRate The finalized return rate
+     * @return availableLiquidity The available liquidity for token burns
+     */
+    function getPropertyOnSaleById(
+        uint256 _propertyId
+    )
+        external
+        view
+        returns (
+            address owner,
+            uint256 totalValue,
+            uint256 resalePrice,
+            uint256 finalReturnRate,
+            uint256 availableLiquidity
+        )
+    {
+        Property storage property = properties[_propertyId];
+        require(property.forSale, "Property not for sale");
+
+        return (
+            property.owner,
+            property.totalValue,
+            property.resalePrice,
+            property.finalReturnRate,
+            propertyLiquidity[_propertyId]
+        );
+    }
+
+    /**
+     * @dev Gets investment details for a specific property and investor
+     * @param _investor The address of the investor
+     * @param _propertyId The ID of the property
+     * @return tokenAmount The amount of tokens owned
+     * @return investmentAmount The amount invested in wei
+     * @return proposedReturnRate The return rate proposed by the investor
+     * @return hasVoted Whether the investor has voted on the return rate
+     * @return exists Whether the investment exists
+     */
     function getInvestmentDetails(
         address _investor,
         uint256 _propertyId
