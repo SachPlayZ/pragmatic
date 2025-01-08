@@ -129,3 +129,8 @@
 .animate-float:nth-child(4) {
   animation-delay: 1.5s;
 }
+
+::-webkit-scrollbar {
+  width: 0;
+  background: #01090c;
+}
