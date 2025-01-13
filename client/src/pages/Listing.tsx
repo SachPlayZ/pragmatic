@@ -1,23 +1,17 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Bookmark, Building2, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface Property {
-  id: string;
-  name: string;
-  location: string;
-  price: number;
-  tokenPrice: number;
-  totalTokens: number;
-  availableTokens: number;
-  imageUrl: string;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-}
+import ListCard from "@/components/ListCard";
+import { Property } from "@/interfaces/interface";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import ListForm from "@/components/ListForm";
 
 const properties: Property[] = [
   {
@@ -68,8 +62,9 @@ export default function Listing() {
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl" />
         <div className="absolute top-1/2 -right-40 w-96 h-96 bg-[#D0FD3E]/20 rounded-full blur-3xl" />
       </div>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 mt-24 flex items-center justify-between px-8">
+
+      <main className="container mx-auto px-4 py-8">
+        <section className="mb-6 mt-24 flex flex-col gap-5 gap-y-8 items-center justify-between lg:px-8">
           <motion.div
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -90,113 +85,30 @@ export default function Listing() {
 
           {/* Button */}
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              className="gap-2 bg-lime-400 text-black hover:bg-lime-500"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Add your property
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="gap-2 bg-lime-400 text-black hover:bg-lime-500"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add your property
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Add your Property</DialogTitle>
+                <ListForm />
+              </DialogContent>
+            </Dialog>
           </motion.div>
-        </div>
 
-        <div className="grid gap-6 px-6 md:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
-            <motion.div
-              key={property.id}
-              className="rounded-xl overflow-hidden border border-gray-700 bg-gray-900 text-white"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <Card className="rounded-xl overflow-hidden border border-gray-700 bg-gray-900 text-white">
-                {/* Image */}
-                <div className="aspect-[16/9] w-full overflow-hidden">
-                  <img
-                    src={property.imageUrl}
-                    alt={property.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                {/* Content */}
-                <CardContent className="p-4">
-                  {/* Title and Price */}
-                  <div className="mb-4 flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-semibold">{property.name}</h3>
-                      <p className="text-sm text-gray-400">
-                        {property.location}
-                      </p>
-                    </div>
-                    <span className="text-lg font-bold text-lime-400">
-                      ${property.price.toLocaleString()}
-                    </span>
-                  </div>
-
-                  {/* Details */}
-                  <div className="mb-4 flex items-center gap-3 text-sm text-gray-400">
-                    <span>{property.bedrooms} BHK</span>
-                    <span>•</span>
-                    <span>{property.sqft} sqft</span>
-                  </div>
-
-                  {/* Token Info */}
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-400">
-                    <div className="flex items-center">
-                      <span>Token Price:</span>
-                      <span className="font-medium text-lime-400 flex gap-1 items-center">
-                        <img
-                          src="/avax_lime.svg"
-                          alt="coin"
-                          className="w-4 h-4 ml-2 items-center mt-1"
-                        />
-                        {property.tokenPrice}
-                      </span>
-                    </div>
-                    <div className="justify-self-end">
-                      <span>Available:</span>
-                      <span className="ml-1 font-medium text-lime-400">
-                        {property.availableTokens} tokens
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                {/* Footer */}
-                <CardFooter className="flex items-center gap-2 p-4 pt-1">
-                  <Button
-                    className="flex-1 bg-lime-400 text-black hover:bg-lime-500  text-sm"
-                    disabled={property.availableTokens === 0}
-                  >
-                    Invest
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className={`${
-                      property.availableTokens === 0
-                        ? "text-gray-600 "
-                        : "text-lime-400 border-lime-400 bg-gray-900 hover:text-lime-500 hover:bg-gray-800"
-                    }`}
-                    disabled={property.availableTokens === 0}
-                  >
-                    <Building2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="text-lime-400 border-lime-400 hover:text-lime-400 bg-gray-900 hover:bg-gray-800"
-                  >
-                    <Bookmark className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+          <div className="grid lg:w-[75%] gap-6 lg:px-6 md:grid-cols-2 lg:grid-cols-2">
+            {properties.map((property, index) => (
+              <ListCard property={property} key={index} />
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

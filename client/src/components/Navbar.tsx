@@ -98,7 +98,7 @@ const Navbar = () => {
             )}
             {/* Connect Button for Mobile */}
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <ConnectButton accountStatus="avatar" chainStatus="icon" />
+              <ConnectButton accountStatus="avatar" chainStatus="none" />
             </motion.div>
           </motion.nav>
         )}
