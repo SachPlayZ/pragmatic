@@ -92,7 +92,7 @@ contract PropertyToken is ERC20, Ownable {
         require(_totalValue > 0, "Invalid property value");
         require(_totalTokens > 0, "Invalid token amount");
 
-        uint256 propertyId = propertyCounter++;
+        uint256 propertyId = ++propertyCounter;
 
         properties[propertyId] = Property({
             owner: msg.sender,
