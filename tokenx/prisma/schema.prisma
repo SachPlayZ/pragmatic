@@ -15,9 +15,8 @@ model Property {
   owner    String
   name     String
   location String
-  price    BigInt
+  price    String
   bedrooms Int
   sqft     Int
   listDate DateTime? @default(now())
 }
-

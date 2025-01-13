@@ -2,7 +2,7 @@ export class PropertyDto {
     owner : string;
     name : string;
     location : string;
-    price : number;
+    price : string;
     bedrooms : number;
     sqft : number;
 }
