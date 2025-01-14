@@ -1,10 +1,10 @@
 export interface Property {
   name: string;
   location: string;
-  price: number;
-  totalTokens: number;
-  availableTokens: number;
+  price: string;
+  totalTokens: string;
+  availableTokens: string;
   imageUrl: string;
-  bedrooms: number;
-  sqft: number;
+  bedrooms: string;
+  sqft: string;
 }

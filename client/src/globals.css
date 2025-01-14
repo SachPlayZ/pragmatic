@@ -134,3 +134,9 @@
   width: 0;
   background: #01090c;
 }
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
