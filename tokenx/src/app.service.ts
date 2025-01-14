@@ -19,7 +19,8 @@ export class AppService {
         location: data.location,
         price: data.price,
         bedrooms: data.bedrooms,
-        sqft: data.sqft
+        sqft: data.sqft,
+        imageUrl: data.imageUrl
       }
     });
     return { message: 'Property added successfully' , status: 200};
@@ -50,12 +51,11 @@ export class AppService {
         id: id
       },
       data: {
-        owner: data.owner,
         name: data.name,
         location: data.location,
-        price: data.price,
         bedrooms: data.bedrooms,
-        sqft: data.sqft
+        sqft: data.sqft,
+        imageUrl: data.imageUrl
       }
     });
   }

@@ -5,4 +5,5 @@ export class PropertyDto {
     price : string;
     bedrooms : number;
     sqft : number;
+    imageUrl : string;
 }

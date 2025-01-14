@@ -19,4 +19,5 @@ model Property {
   bedrooms Int
   sqft     Int
   listDate DateTime? @default(now())
+  imageUrl String    @default("https://reviveyouthandfamily.org/wp-content/uploads/2016/11/house-placeholder.jpg")
 }
