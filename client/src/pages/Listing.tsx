@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import ListCard from "@/components/ListCard";
-import { Property } from "@/interfaces/interface";
+// import { Property } from "@/interfaces/interface";
 import ListForm from "@/components/ListForm";
+import { GetId } from "@/components/functions/GetId";
+import { useEffect, useState } from "react";
+import { GetProperty } from "@/components/functions/GetProperty";
 
-const properties: Property[] = [
+const properties = [
   {
     name: "Collezione House",
     location: "Warsaw, Poland",
@@ -37,6 +40,40 @@ const properties: Property[] = [
 ];
 
 export default function Listing() {
+  const { data, refetch } = GetId();
+  const [ids, setIds] = useState([]);
+  const [propertyList, setPropertyList] = useState<any[]>([]);
+
+  useEffect(() => {
+    console.log("Setting up refetch interval");
+    const interval = setInterval(() => {
+      refetch()
+        .then((result: any) => {
+          console.log("Ids refetched: ", result.data);
+          setIds(result.data);
+          console.log("Ids: ", ids);
+        })
+        .catch((error: any) => {
+          console.error("Error during refetch: ", error);
+        });
+    }, 5000);
+    return () => {
+      console.log("Clearing refetch interval");
+      clearInterval(interval);
+    };
+  }, [refetch]);
+
+  // const { data } = GetProperty({ ids });
+  // setPropertyList([...propertyList, data]);
+  // console.log("Property list: ", propertyList);
+
+  // // useEffect(() => {
+  // //   if (ids.length > 0) {
+  // //     const propertyList = GetProperty({ ids });
+  // //     setPropertyList(propertyList);
+  // //   }
+  // // }, [ids]);
+
   return (
     <div className="min-h-screen bg-[#0A1A1F]">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

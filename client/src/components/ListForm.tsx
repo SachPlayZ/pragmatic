@@ -19,8 +19,9 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "./ui/dialog";
+import { useState } from "react";
+import { useWriteContract } from "wagmi";
 
 interface ListForm {
   property: Property;
@@ -38,18 +39,6 @@ const formSchema = z.object({
     .refine((val) => val >= 5 && val <= 20, {
       message: "must be between 5 and 20",
     }),
-  // totalTokens: z
-  //   .string()
-  //   .refine((val) => !isNaN(Number(val)), {
-  //     message: "Total tokens must be a number",
-  //   })
-  //   .transform((val) => Number(val)),
-  // availableTokens: z
-  //   .string()
-  //   .refine((val) => !isNaN(Number(val)), {
-  //     message: "Available tokens must be a number",
-  //   })
-  //   .transform((val) => Number(val)),
   imageUrl: z.string().min(1, "Image URL cannot be empty").url(),
   bedrooms: z
     .string()
@@ -63,12 +52,6 @@ const formSchema = z.object({
       message: "Square feet must be a number",
     })
     .transform((val) => Number(val)),
-
-  // totalTokens: z.number().min(1, "Total tokens cannot be empty"),
-  // availableTokens: z.number().min(0, "Available tokens cannot be negative"),
-  // imageUrl: z.string().min(1, "Image URL cannot be empty").url(),
-  // bedrooms: z.number().min(1, "Bedrooms cannot be empty"),
-  // sqft: z.number().min(1, "Square feet cannot be empty"),
 });
 
 function ListForm() {
@@ -84,16 +67,22 @@ function ListForm() {
     },
   });
 
+  const [open, setOpen] = useState(false);
+  const { writeContractAsync } = useWriteContract();
+
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
       console.log("Form submitted:", data);
+
+      setOpen(false);
+      form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
     }
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -223,14 +212,12 @@ function ListForm() {
             />
 
             {/* List CTA button*/}
-            <DialogClose className="flex justify-center mt-10 pt-3">
-              <Button
-                type="submit"
-                className="bg-lime-400 text-black hover:bg-lime-500"
-              >
-                List Property
-              </Button>
-            </DialogClose>
+            <Button
+              type="submit"
+              className="bg-lime-400 text-black hover:bg-lime-500"
+            >
+              List Property
+            </Button>
           </form>
         </Form>
       </DialogContent>

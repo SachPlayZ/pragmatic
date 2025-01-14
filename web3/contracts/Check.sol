@@ -14,10 +14,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Check is ERC20, Ownable {
     struct Property {
         address owner;
-        uint256 totalValue;
-        uint256 totalTokens;
-        bool isListed;
-        uint256 rentalIncome;
+        uint256 totalValue; // AVAX
+        uint256 totalTokens; // PROP
+        bool isListed; // Can be removed
+        uint256 rentalIncome; // Later
         uint256 resalePrice;
         bool forSale;
         uint256 finalReturnRate; // Weighted average return rate
@@ -35,10 +35,11 @@ contract Check is ERC20, Ownable {
 
     // Platform fee percentage (2%)
     uint256 public constant PLATFORM_FEE = 2;
-    uint256 public constant BASIS_POINTS = 10000;
+    uint256 public constant BASIS_POINTS = 300;
+    uint256 public constant ONE_PROP_IN_AVAX = 1;
 
     // Mapping to store properties
-    mapping(uint256 => Property) public properties;
+    mapping(uint256 => Property) public property;
     // Property ID counter
     uint256 private propertyCounter;
     // Mapping of property investments per address
@@ -66,15 +67,15 @@ contract Check is ERC20, Ownable {
     /**
      * @dev Lists a new property for tokenization
      * @param _totalValue The total value of the property in wei
-     * @param _totalTokens The total number of tokens to be issued for the property
      */
-    function listProperty(uint256 _totalValue, uint256 _totalTokens) external {
+    function listProperty(uint256 _totalValue) external {
         require(_totalValue > 0, "Invalid property value");
-        require(_totalTokens > 0, "Invalid token amount");
 
-        uint256 propertyId = ++propertyCounter;
+        uint _totalTokens = _totalValue / ONE_PROP_IN_AVAX;
 
-        properties[propertyId] = Property({
+        uint256 propertyId = propertyCounter++;
+
+        property[propertyId] = Property({
             owner: msg.sender,
             totalValue: _totalValue,
             totalTokens: _totalTokens,
@@ -91,5 +92,42 @@ contract Check is ERC20, Ownable {
         allPropertyIds.push(propertyId);
 
         emit PropertyListed(propertyId, msg.sender, _totalValue, _totalTokens);
+    }
+
+    /**
+     * @dev Gets all properties that have been listed
+     * @return An array of property IDs
+     */
+    function getAllListings() external view returns (uint256[] memory) {
+        return allPropertyIds;
+    }
+
+    function getListingById(
+        uint256 _propertyId
+    )
+        external
+        view
+        returns (
+            address owner,
+            uint256 totalValue,
+            uint256 totalTokens,
+            bool isListed,
+            uint256 rentalIncome,
+            uint256 resalePrice,
+            bool forSale
+        )
+    {
+        Property storage _property = property[_propertyId];
+        require(_property.isListed, "Property not listed");
+
+        return (
+            _property.owner,
+            _property.totalValue,
+            _property.totalTokens,
+            _property.isListed,
+            _property.rentalIncome,
+            _property.resalePrice,
+            _property.forSale
+        );
     }
 }
