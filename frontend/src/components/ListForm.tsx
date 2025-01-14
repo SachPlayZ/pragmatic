@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { Property } from "@/interfaces/interface";
+import { Map, MapPin } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -20,16 +21,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import { useState } from "react";
-import { useWriteContract } from "wagmi";
-
-interface ListForm {
-  property: Property;
-}
+import { Card, CardContent } from "@/components/ui/card";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name cannot be empty"),
-  location: z.string().min(1, "Location cannot be empty"),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }),
   price: z
     .string()
     .refine((val) => !isNaN(Number(val)), {
@@ -54,12 +53,65 @@ const formSchema = z.object({
     .transform((val) => Number(val)),
 });
 
+const SimpleMap = ({ onLocationSelect, selectedLocation }) => {
+  // Since we can't use actual map libraries, we'll create a simple coordinate selector
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseDown = () => setIsDragging(true);
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    // Convert to rough lat/lng (-90 to 90 for lat, -180 to 180 for lng)
+    const lat = 90 - y * 180;
+    const lng = x * 360 - 180;
+
+    onLocationSelect({
+      lat: parseFloat(lat.toFixed(6)),
+      lng: parseFloat(lng.toFixed(6)),
+    });
+  };
+
+  return (
+    <div
+      className="relative w-full h-48 bg-gray-100 border-2 border-gray-300 rounded cursor-crosshair"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseUp}
+    >
+      <div className="absolute inset-0 flex items-center justify-center">
+        {!selectedLocation && <Map className="text-gray-400 h-12 w-12" />}
+      </div>
+      {selectedLocation && (
+        <div
+          className="absolute"
+          style={{
+            left: `${((selectedLocation.lng + 180) / 360) * 100}%`,
+            top: `${((90 - selectedLocation.lat) / 180) * 100}%`,
+          }}
+        >
+          <MapPin className="text-red-500 h-6 w-6 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 function ListForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [open, setOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      location: "",
+      location: { lat: 0, lng: 0 },
       price: 0,
       imageUrl: "",
       bedrooms: 0,
@@ -67,15 +119,22 @@ function ListForm() {
     },
   });
 
-  const [open, setOpen] = useState(false);
-  const { writeContractAsync } = useWriteContract();
+  const handleLocationSelect = (location) => {
+    form.setValue("location", location);
+  };
 
-  async function onSubmit(data: z.infer<typeof formSchema>) {
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value;
+    form.setValue("imageUrl", url);
+    setPreviewUrl(url);
+  };
+
+  async function onSubmit(data) {
     try {
       console.log("Form submitted:", data);
-
       setOpen(false);
       form.reset();
+      setPreviewUrl("");
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -92,62 +151,92 @@ function ListForm() {
           Add your property
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-[#0A1A1F]/70 backdrop-blur-md border text-white border-[#D0FD3E] w-[90%] max-w-lg min-h-[75vh]">
+      <DialogContent className="bg-[#0A1A1F]/70 backdrop-blur-md border text-white border-[#D0FD3E] w-[90%] max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogTitle className="text-center">Add your Property</DialogTitle>
         <DialogDescription className="text-center">
-          {" "}
           Fill in the details of your property to list it on the marketplace
         </DialogDescription>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-2 p-2"
+            className="space-y-4 p-2"
           >
-            <div className="flex flex-col space-y-2">
-              {/* Name Field */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm sm:text-base">
-                      Name of property
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Villa Paradise"
-                        {...field}
-                        className="text-sm px-2 py-1 sm:px-3 sm:py-2 text-black"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Name Field */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name of property</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Villa Paradise"
+                      {...field}
+                      className="text-black"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/*Location Field */}
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm sm:text-base">
-                      Location
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Image URL: https://example.com/image.jpg"
-                        {...field}
-                        className="text-sm px-2 py-1 sm:px-3 sm:py-2 text-black"
+            {/* Location Map */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Select Location</FormLabel>
+                  <Card className="border border-gray-300">
+                    <CardContent className="p-2">
+                      <SimpleMap
+                        onLocationSelect={handleLocationSelect}
+                        selectedLocation={form.watch("location")}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      {form.watch("location").lat !== 0 && (
+                        <p className="text-xs mt-2 text-gray-400">
+                          Selected: {form.watch("location").lat.toFixed(6)},{" "}
+                          {form.watch("location").lng.toFixed(6)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Image URL Field */}
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Image URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      {...field}
+                      onChange={handleImageUrlChange}
+                      className="text-black"
+                    />
+                  </FormControl>
+                  {previewUrl && (
+                    <div className="mt-2 rounded overflow-hidden">
+                      <img
+                        src={previewUrl}
+                        alt="Property preview"
+                        className="w-full h-48 object-cover"
+                        onError={() => setPreviewUrl("")}
+                      />
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Price Field */}
             <FormField
@@ -155,15 +244,13 @@ function ListForm() {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm sm:text-base">
-                    Price (in TKX)
-                  </FormLabel>
+                  <FormLabel>Price (in TKX)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Price (in AVAX)"
+                      placeholder="Price (in TKX)"
                       {...field}
-                      className="text-sm px-2 py-1 sm:px-3 sm:py-2 text-black"
+                      className="text-black"
                     />
                   </FormControl>
                   <FormMessage />
@@ -177,15 +264,16 @@ function ListForm() {
               name="bedrooms"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs sm:text-sm">Bedrooms</FormLabel>
+                  <FormLabel>Bedrooms</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Bedrooms"
+                      placeholder="Number of bedrooms"
                       {...field}
-                      className="text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2 text-black"
+                      className="text-black"
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -196,25 +284,23 @@ function ListForm() {
               name="sqft"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs sm:text-sm">
-                    Square Feet
-                  </FormLabel>
+                  <FormLabel>Square Feet</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Square Feet"
+                      placeholder="Property size in square feet"
                       {...field}
-                      className="text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2 text-black"
+                      className="text-black"
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* List CTA button*/}
             <Button
               type="submit"
-              className="bg-lime-400 text-black hover:bg-lime-500"
+              className="w-full bg-lime-400 text-black hover:bg-lime-500"
             >
               List Property
             </Button>

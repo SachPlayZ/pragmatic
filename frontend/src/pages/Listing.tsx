@@ -1,78 +1,108 @@
 import { motion } from "framer-motion";
 import ListCard from "@/components/ListCard";
-// import { Property } from "@/interfaces/interface";
 import ListForm from "@/components/ListForm";
-import { GetId } from "@/components/functions/GetId";
 import { useEffect, useState } from "react";
-import { GetProperty } from "@/components/functions/GetProperty";
+import { GetAllProperties } from "@/components/functions/GetAllProperties";
 
-const properties = [
-  {
-    name: "Collezione House",
-    location: "Warsaw, Poland",
-    price: 785000,
-    totalTokens: 1570,
-    availableTokens: 985,
-    imageUrl: "/1.jpeg",
-    bedrooms: 4,
-    sqft: 1250,
-  },
-  {
-    name: "Kayappa House",
-    location: "Warsaw, Poland",
-    price: 837000,
-    totalTokens: 837,
-    availableTokens: 0,
-    imageUrl: "/2.jpg",
-    bedrooms: 4,
-    sqft: 1120,
-  },
-  {
-    name: "Willisme House",
-    location: "Warsaw, Poland",
-    price: 723000,
-    totalTokens: 964,
-    availableTokens: 500,
-    imageUrl: "/4.jpeg",
-    bedrooms: 3,
-    sqft: 1230,
-  },
-];
+interface PropertyFromContract {
+  owner: string;
+  totalValue: string;
+  totalTokens: string;
+  isListed: boolean;
+  rentalIncome: string;
+  resalePrice: string;
+  forSale: boolean;
+  finalReturnRate: string;
+  totalInvestedTokens: string;
+  returnRateFinalized: boolean;
+}
+
+interface PropertyDetailsFromBackend {
+  id: number;
+  owner: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+  listDate: string;
+  imageUrl: string;
+}
+
+interface Property {
+  id: number;
+  imageUrl: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+  tokenPrice: string;
+  availableTokens: string;
+}
 
 export default function Listing() {
-  const { data, refetch } = GetId();
-  const [ids, setIds] = useState([]);
-  const [propertyList, setPropertyList] = useState<any[]>([]);
+  // State for backend properties
+  const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>(
+    []
+  );
+  // New state for combined property data
+  const [combinedProperties, setCombinedProperties] = useState<Property[]>([]);
+
+  const { data: propertyList, refetch } = GetAllProperties();
 
   useEffect(() => {
-    console.log("Setting up refetch interval");
-    const interval = setInterval(() => {
-      refetch()
-        .then((result: any) => {
-          console.log("Ids refetched: ", result.data);
-          setIds(result.data);
-          console.log("Ids: ", ids);
-        })
-        .catch((error: any) => {
-          console.error("Error during refetch: ", error);
-        });
-    }, 5000);
-    return () => {
-      console.log("Clearing refetch interval");
-      clearInterval(interval);
+    // Fetch properties from backend
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
+        );
+        const data = await response.json();
+        setProperties(data);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      }
     };
-  }, [refetch]);
 
-  // const { data } = GetProperty({ ids });
-  // setPropertyList([...propertyList, data]);
-  // console.log("Property list: ", propertyList);
+    fetchProperties();
+    refetch();
+  }, []); // Fetch on component mount
 
-  // // useEffect(() => {
-  // //   if (ids.length > 0) {
-  // //     const propertyList = GetProperty({ ids });
-  // //     setPropertyList(propertyList);
-  // //   }
-  // // }, [ids]);
+  useEffect(() => {
+    // Combine backend and contract data when both are available
+    if (propertyList && properties.length > 0) {
+      const combined = properties
+        .map((property, index) => {
+          const propertyFromContract = (propertyList as PropertyFromContract[])[
+            index
+          ];
+
+          if (!propertyFromContract) {
+            console.warn(`No contract data found for property index ${index}`);
+            return null;
+          }
+
+          return {
+            id: property.id,
+            imageUrl: property.imageUrl,
+            name: property.name,
+            location: property.location,
+            price: property.price,
+            bedrooms: property.bedrooms,
+            sqft: property.sqft,
+            tokenPrice: propertyFromContract.totalTokens,
+            availableTokens: (
+              BigInt(propertyFromContract.totalTokens) -
+              BigInt(propertyFromContract.totalInvestedTokens)
+            ).toString(),
+          };
+        })
+        .filter((property): property is Property => property !== null);
+
+      setCombinedProperties(combined);
+    }
+  }, [properties, propertyList]); // Update when either data source changes
 
   return (
     <div className="min-h-screen bg-[#0A1A1F]">
@@ -89,26 +119,23 @@ export default function Listing() {
             transition={{ duration: 0.5 }}
             className="flex-1"
           >
-            {/* Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
               <span className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">
                 Property Listing
               </span>
             </h1>
-            {/* Subtitle */}
             <p className="mt-2 text-lg text-gray-400">
               Overview and find a comfortable real estate for your life
             </p>
           </motion.div>
 
-          {/* Button */}
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
             <ListForm />
           </motion.div>
 
           <div className="grid lg:w-[75%] gap-6 lg:px-6 md:grid-cols-2 lg:grid-cols-2">
-            {properties.map((property, index) => (
-              <ListCard property={property} key={index} />
+            {combinedProperties.map((property) => (
+              <ListCard property={property} key={property.id} />
             ))}
           </div>
         </section>
