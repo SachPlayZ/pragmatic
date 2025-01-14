@@ -11,6 +11,12 @@ datasource db {
 }
 
 model Property {
-  id Int @default(autoincrement()) @id
-  
+  id       Int       @id @default(autoincrement())
+  owner    String
+  name     String
+  location String
+  price    String
+  bedrooms Int
+  sqft     Int
+  listDate DateTime? @default(now())
 }
