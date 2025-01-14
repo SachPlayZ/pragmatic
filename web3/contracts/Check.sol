@@ -25,6 +25,16 @@ contract Check is ERC20, Ownable {
         bool returnRateFinalized; // Whether return rate voting is complete
     }
 
+    struct PropertyDetails {
+        address owner;
+        uint256 totalValue;
+        uint256 totalTokens;
+        bool isListed;
+        uint256 rentalIncome;
+        uint256 resalePrice;
+        bool forSale;
+    }
+
     struct Investment {
         uint256 tokenAmount;
         uint256 investmentAmount;
@@ -95,39 +105,42 @@ contract Check is ERC20, Ownable {
     }
 
     /**
-     * @dev Gets all properties that have been listed
-     * @return An array of property IDs
+     * @dev Returns all properties with their complete details
+     * @return An array of Property structs where the array index corresponds to the property ID
+     * This simplified format allows the frontend to use array indices as property IDs
+     * while maintaining all the necessary property information
      */
-    function getAllListings() external view returns (uint256[] memory) {
-        return allPropertyIds;
+    function getAllProperties() external view returns (Property[] memory) {
+        uint256 totalProperties = allPropertyIds.length;
+        Property[] memory properties = new Property[](totalProperties);
+
+        for (uint256 i = 0; i < totalProperties; i++) {
+            properties[i] = property[allPropertyIds[i]];
+        }
+
+        return properties;
     }
 
+    /**
+     * @dev Returns property details in a structured format
+     * @param _propertyId The ID of the property to retrieve
+     * @return A PropertyDetails struct containing all property information
+     */
     function getListingById(
         uint256 _propertyId
-    )
-        external
-        view
-        returns (
-            address owner,
-            uint256 totalValue,
-            uint256 totalTokens,
-            bool isListed,
-            uint256 rentalIncome,
-            uint256 resalePrice,
-            bool forSale
-        )
-    {
+    ) external view returns (PropertyDetails memory) {
         Property storage _property = property[_propertyId];
         require(_property.isListed, "Property not listed");
 
-        return (
-            _property.owner,
-            _property.totalValue,
-            _property.totalTokens,
-            _property.isListed,
-            _property.rentalIncome,
-            _property.resalePrice,
-            _property.forSale
-        );
+        return
+            PropertyDetails({
+                owner: _property.owner,
+                totalValue: _property.totalValue,
+                totalTokens: _property.totalTokens,
+                isListed: _property.isListed,
+                rentalIncome: _property.rentalIncome,
+                resalePrice: _property.resalePrice,
+                forSale: _property.forSale
+            });
     }
 }
