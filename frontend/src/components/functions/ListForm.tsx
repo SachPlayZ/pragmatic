@@ -11,8 +11,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { PlusIcon } from "lucide-react";
 import {
   Dialog,
@@ -20,7 +20,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from "./ui/dialog";
+} from "../ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 
 const formSchema = z.object({
@@ -53,14 +53,14 @@ const formSchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const SimpleMap = ({ onLocationSelect, selectedLocation }) => {
+const SimpleMap = ({ onLocationSelect, selectedLocation }: any) => {
   // Since we can't use actual map libraries, we'll create a simple coordinate selector
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = () => setIsDragging(true);
   const handleMouseUp = () => setIsDragging(false);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: any) => {
     if (!isDragging) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -119,17 +119,17 @@ function ListForm() {
     },
   });
 
-  const handleLocationSelect = (location) => {
+  const handleLocationSelect = (location: any) => {
     form.setValue("location", location);
   };
 
-  const handleImageUrlChange = (e) => {
+  const handleImageUrlChange = (e: any) => {
     const url = e.target.value;
     form.setValue("imageUrl", url);
     setPreviewUrl(url);
   };
 
-  async function onSubmit(data) {
+  async function onSubmit(data: any) {
     try {
       console.log("Form submitted:", data);
       setOpen(false);
