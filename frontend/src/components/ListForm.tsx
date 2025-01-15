@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-// import { Map, MapPin } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -23,6 +22,7 @@ import {
 } from "./ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import MapComponent from "./functions/Map";
+import { useAccount } from "wagmi";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name cannot be empty"),
@@ -36,8 +36,8 @@ const formSchema = z.object({
       message: "Price must be a number",
     })
     .transform((val) => Number(val))
-    .refine((val) => val >= 5 && val <= 20, {
-      message: "must be between 5 and 20",
+    .refine((val) => val >= 1 && val <= 20, {
+      message: "must be between 1 and 20",
     }),
   file: z.instanceof(File).optional(),
   bedrooms: z
@@ -55,8 +55,8 @@ const formSchema = z.object({
 });
 
 function ListForm() {
+  const { address } = useAccount();
   const [open, setOpen] = useState(false);
-  //const [previewUrl, setPreviewUrl] = useState("");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -76,9 +76,23 @@ function ListForm() {
         ...data,
         file: data.file ? data.file.name : "No file selected",
       });
+      
+      const result = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...data,
+            owner: address,
+          }),
+        }
+      );
+      console.log("Result:", result);
       setOpen(false);
       form.reset();
-      //setPreviewUrl("");
     } catch (error) {
       console.error("Error submitting form:", error);
     }
