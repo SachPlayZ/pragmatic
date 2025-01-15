@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import ListCard from "@/components/functions/ListCard";
-import ListForm from "@/components/functions/ListForm";
+import ListCard from "@/components/ListCard";
+import ListForm from "@/components/ListForm";
 import { useEffect, useState } from "react";
 import { GetAllProperties } from "@/components/functions/GetAllProperties";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import PropertyCard from "@/components/functions/ProductCard";
+import PropertyCard from "@/components/ProductCard";
 
 const properties = [
   {
