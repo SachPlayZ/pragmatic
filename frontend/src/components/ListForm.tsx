@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-// import { Map, MapPin } from "lucide-react";
+// import { Map, MapPin } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -39,7 +39,7 @@ const formSchema = z.object({
     .refine((val) => val >= 5 && val <= 20, {
       message: "must be between 5 and 20",
     }),
-  imageUrl: z.string().min(1, "Image URL cannot be empty").url(),
+  file: z.instanceof(File).optional(),
   bedrooms: z
     .string()
     .refine((val) => !isNaN(Number(val)), {
@@ -56,7 +56,7 @@ const formSchema = z.object({
 
 function ListForm() {
   const [open, setOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState("");
+  //const [previewUrl, setPreviewUrl] = useState("");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -64,24 +64,21 @@ function ListForm() {
       name: "",
       location: { lng: 0, lat: 0 },
       price: 0,
-      imageUrl: "",
+      file: null,
       bedrooms: 0,
       sqft: 0,
     },
   });
 
-  const handleImageUrlChange = (e: any) => {
-    const url = e.target.value;
-    form.setValue("imageUrl", url);
-    setPreviewUrl(url);
-  };
-
   async function onSubmit(data: any) {
     try {
-      console.log("Form submitted:", data);
+      console.log("Form submitted:", {
+        ...data,
+        file: data.file ? data.file.name : "No file selected",
+      });
       setOpen(false);
       form.reset();
-      setPreviewUrl("");
+      //setPreviewUrl("");
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -106,7 +103,7 @@ function ListForm() {
           Add your property
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-[#0A1A1F]/70 backdrop-blur-md border text-white border-[#D0FD3E] w-[90%] max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-lg border text-white border-lime-400 rounded-xl w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogTitle className="text-center">Add your Property</DialogTitle>
         <DialogDescription className="text-center">
           Fill in the details of your property to list it on the marketplace
@@ -128,7 +125,7 @@ function ListForm() {
                       type="text"
                       placeholder="Villa Paradise"
                       {...field}
-                      className="text-black"
+                      className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
                     />
                   </FormControl>
                   <FormMessage />
@@ -139,7 +136,7 @@ function ListForm() {
             <FormField
               control={form.control}
               name="location"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
                   <FormLabel>Select Location</FormLabel>
                   <Card className="border border-gray-300">
@@ -158,100 +155,106 @@ function ListForm() {
               )}
             />
 
-            {/* Image URL Field */}
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Image URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      {...field}
-                      onChange={handleImageUrlChange}
-                      className="text-black"
-                    />
-                  </FormControl>
-                  {previewUrl && (
-                    <div className="mt-2 rounded overflow-hidden">
-                      <img
-                        src={previewUrl}
-                        alt="Property preview"
-                        className="w-full h-48 object-cover"
-                        onError={() => setPreviewUrl("")}
+            <div className="flex space-x-4">
+              {/* Image Field */}
+              <FormField
+                control={form.control}
+                name="file"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Property Image</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            onChange(file);
+                            //setPreviewUrl(URL.createObjectURL(file));
+                          }
+                        }}
+                        {...field}
+                        className="bg-gray-800 border-gray-700 text-white file:mr-4 file:py-[0.1rem] file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-lime-400 file:text-black
+                        hover:file:bg-lime-500
+                        file:pointer-events-auto
+                        focus:ring-lime-400 focus:border-lime-400"
                       />
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Price Field */}
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price (in TKX)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Price (in TKX)"
-                      {...field}
-                      className="text-black"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Price Field */}
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Price (in TKX)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Price (in TKX)"
+                        {...field}
+                        className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Bedrooms Field */}
-            <FormField
-              control={form.control}
-              name="bedrooms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bedrooms</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Number of bedrooms"
-                      {...field}
-                      className="text-black"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex space-x-4">
+              {/* Bedrooms Field */}
+              <FormField
+                control={form.control}
+                name="bedrooms"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Bedrooms</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Number of bedrooms"
+                        {...field}
+                        className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Square Feet Field */}
-            <FormField
-              control={form.control}
-              name="sqft"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Square Feet</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Property size in square feet"
-                      {...field}
-                      className="text-black"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Square Feet Field */}
+              <FormField
+                control={form.control}
+                name="sqft"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Square Feet</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Property size in square feet"
+                        {...field}
+                        className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <Button
               type="submit"
-              className="w-full bg-lime-400 text-black hover:bg-lime-500"
+              className="w-full bg-gradient-to-r from-lime-400 to-green-500 text-black font-semibold hover:from-lime-500 hover:to-green-600 transition duration-300 ease-in-out"
             >
               List Property
             </Button>
