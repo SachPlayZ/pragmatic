@@ -32,7 +32,7 @@ const Navbar = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             {["Properties", "Listings", "How it Works", "Dashboard"].map(
               (item) => (
                 <motion.div
@@ -52,7 +52,7 @@ const Navbar = () => {
           </nav>
 
           {/* Mobile Menu Toggle */}
-          <div className="flex md:hidden items-center">
+          <div className="flex lg:hidden items-center">
             <motion.div whileTap={{ scale: 0.95 }}>
               {isMobileMenuOpen ? (
                 <X
@@ -69,7 +69,7 @@ const Navbar = () => {
           </div>
 
           {/* Connect Wallet Button */}
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <ConnectButton accountStatus="avatar" chainStatus="icon" />
             </motion.div>
@@ -82,7 +82,7 @@ const Navbar = () => {
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-[#0A1A1F]/90 rounded-xl mt-2 p-4 flex flex-col space-y-4 text-center border border-white/10"
+            className="lg:hidden bg-[#0A1A1F]/90 rounded-xl mt-2 p-4 flex flex-col space-y-4 text-center border border-white/10"
           >
             {["Properties", "Listings", "How it Works", "Dashboard"].map(
               (item) => (
