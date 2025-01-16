@@ -76,7 +76,7 @@ function ListForm() {
         ...data,
         file: data.file ? data.file.name : "No file selected",
       });
-      
+
       const result = await fetch(
         `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
         {
@@ -85,7 +85,6 @@ function ListForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            
             owner: address,
             name: data.name,
             location: data.location,

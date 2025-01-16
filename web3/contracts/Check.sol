@@ -48,6 +48,9 @@ contract Check is ERC20, Ownable {
     uint256 public constant BASIS_POINTS = 300;
     uint256 public constant ONE_PROP_IN_AVAX = 1;
 
+    // Will Update
+    uint256 public constant ONE_AVAX_IN_PROP = 1000;
+
     // Mapping to store properties
     mapping(uint256 => Property) public property;
     // Property ID counter
@@ -71,6 +74,20 @@ contract Check is ERC20, Ownable {
         uint256 totalValue,
         uint256 totalTokens
     );
+    event InvestmentMade(
+        uint256 indexed propertyId,
+        address investor,
+        uint256 tokens,
+        uint256 amount,
+        uint256 proposedRate
+    );
+    event ReturnRateProposed(
+        uint256 indexed propertyId,
+        address investor,
+        uint256 proposedRate,
+        uint256 weight
+    );
+    event ReturnRateFinalized(uint256 indexed propertyId, uint256 finalRate);
 
     constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {}
 
@@ -78,16 +95,19 @@ contract Check is ERC20, Ownable {
      * @dev Lists a new property for tokenization
      * @param _totalValue The total value of the property in wei
      */
+
+    // Value needs to be sent in WEI
     function listProperty(uint256 _totalValue) external {
         require(_totalValue > 0, "Invalid property value");
 
-        uint _totalTokens = _totalValue / ONE_PROP_IN_AVAX;
+        // One AVAX = 1000 PROP here for testing purposes
+        uint256 _totalTokens = _totalValue * ONE_AVAX_IN_PROP;
 
         uint256 propertyId = propertyCounter++;
 
         property[propertyId] = Property({
             owner: msg.sender,
-            totalValue: _totalValue,
+            totalValue: _totalValue, // Assume _totalValue is provided in wei
             totalTokens: _totalTokens,
             isListed: true,
             rentalIncome: 0,
@@ -142,5 +162,105 @@ contract Check is ERC20, Ownable {
                 resalePrice: _property.resalePrice,
                 forSale: _property.forSale
             });
+    }
+
+    event Debug(string message, uint256 value);
+
+    // INVEST FOR CONTRACT
+    // msg.value IN AVAX
+    function invest(
+        uint256 _propertyId,
+        uint256 _proposedReturnRate
+    ) external payable {
+        Property storage prop = property[_propertyId];
+
+        require(prop.isListed, "Property not listed");
+        emit Debug("Passed: Property is listed", 0);
+
+        require(!prop.returnRateFinalized, "Return rate already finalized");
+        emit Debug("Passed: Return rate not finalized", 0);
+
+        require(msg.value > 0, "Invalid investment amount");
+        emit Debug("Passed: Investment amount is valid", msg.value);
+
+        require(_proposedReturnRate > 0, "Invalid return rate");
+        emit Debug("Passed: Return rate is valid", _proposedReturnRate);
+
+        uint256 tokenAmount = (msg.value * prop.totalTokens) / prop.totalValue;
+        require(tokenAmount > 0, "Investment too small");
+
+        Investment storage investment = investments[msg.sender][_propertyId];
+        if (!investment.exists) {
+            investments[msg.sender][_propertyId] = Investment({
+                tokenAmount: tokenAmount,
+                investmentAmount: msg.value, // Correctly use msg.value
+                proposedReturnRate: _proposedReturnRate,
+                hasVoted: true,
+                exists: true
+            });
+        } else {
+            uint256 totalTokens = investment.tokenAmount + tokenAmount;
+            uint256 weightedOldRate = investment.proposedReturnRate *
+                investment.tokenAmount;
+            uint256 weightedNewRate = _proposedReturnRate * tokenAmount;
+            investment.proposedReturnRate =
+                (weightedOldRate + weightedNewRate) /
+                totalTokens;
+            investment.tokenAmount = totalTokens;
+            investment.investmentAmount += msg.value; // Correctly use msg.value
+        }
+
+        prop.totalInvestedTokens += tokenAmount;
+        updateWeightedReturnRate(_propertyId, tokenAmount, _proposedReturnRate);
+
+        _mint(msg.sender, tokenAmount);
+
+        emit InvestmentMade(
+            _propertyId,
+            msg.sender,
+            tokenAmount,
+            msg.value,
+            _proposedReturnRate
+        );
+    }
+
+    /**
+     * @dev Updates the weighted return rate for a property based on new investment
+     * @param _propertyId The ID of the property
+     * @param _tokenAmount The amount of tokens invested
+     * @param _proposedRate The proposed return rate
+     */
+    function updateWeightedReturnRate(
+        uint256 _propertyId,
+        uint256 _tokenAmount,
+        uint256 _proposedRate
+    ) internal {
+        Property storage prop = property[_propertyId];
+        uint256 weightedVote = _tokenAmount * _proposedRate;
+        totalWeightedVotes[_propertyId] += weightedVote;
+
+        prop.finalReturnRate =
+            totalWeightedVotes[_propertyId] /
+            prop.totalInvestedTokens;
+
+        if (prop.totalInvestedTokens == prop.totalTokens) {
+            prop.returnRateFinalized = true;
+            prop.resalePrice = calculateResalePrice(_propertyId);
+            // prop.forSale = true;
+            emit ReturnRateFinalized(_propertyId, prop.finalReturnRate);
+        }
+    }
+
+    /**
+     * @dev Calculates the resale price for a property based on return rate
+     * @param _propertyId The ID of the property
+     * @return The calculated resale price
+     */
+    function calculateResalePrice(
+        uint256 _propertyId
+    ) internal view returns (uint256) {
+        Property storage prop = property[_propertyId];
+        uint256 returnAmount = (prop.totalValue * prop.finalReturnRate) / 100;
+        return prop.totalValue + returnAmount;
     }
 }
