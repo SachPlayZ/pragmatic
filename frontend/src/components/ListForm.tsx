@@ -72,11 +72,24 @@ function ListForm() {
 
   async function onSubmit(data: any) {
     try {
+      const formData = new FormData();
+      formData.append("file", data.file);
+      formData.append("upload_preset", "tokenx-prop");
+      await fetch(`https://api.cloudinary.com/v1_1/de9fzqkly/image/upload`, {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          console.log(res);
+          data.file = res.url;
+        });
       console.log("Form submitted:", {
         ...data,
-        file: data.file ? data.file.name : "No file selected",
+        location: data.location.lat + "," + data.location.lng,
+        file: data.file ? data.file : "No file selected",
       });
-      
+
       const result = await fetch(
         `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
         {
@@ -85,13 +98,13 @@ function ListForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            
             owner: address,
             name: data.name,
-            location: data.location,
-            price: data.price,
+            location: data.location.lat + "," + data.location.lng,
+            price: (data.price * 10 ** 18).toString(),
             bedrooms: data.bedrooms,
             sqft: data.sqft,
+            imageUrl: data.file,
           }),
         }
       );
