@@ -85,8 +85,13 @@ function ListForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...data,
+            
             owner: address,
+            name: data.name,
+            location: data.location,
+            price: data.price,
+            bedrooms: data.bedrooms,
+            sqft: data.sqft,
           }),
         }
       );
