@@ -1,10 +1,18 @@
 import { motion } from "framer-motion";
-import { Bookmark, Building2 } from "lucide-react";
+import { Bookmark, Building2, Home, Maximize2 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "./ui/dialog";
+import { DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import InvestForm from "./InvestForm";
+import { useState } from "react";
 
 export default function ListCard(props: any) {
   const { property } = props;
+  console.log(property);
+
+  const [lat, lon] = property.location.split(",").map(Number);
+  const [showInvestButton, setShowInvestButton] = useState(true);
 
   return (
     <motion.div
@@ -31,18 +39,27 @@ export default function ListCard(props: any) {
           <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <h3 className="text-lg font-semibold">{property.name}</h3>
-              <p className="text-sm text-gray-400">{property.location}</p>
+              <p className="text-sm text-gray-400">
+                {lat.toFixed(2)}°, {lon.toFixed(2)}°
+              </p>
             </div>
             <span className="mt-2 sm:mt-0 text-lg font-bold text-lime-400">
-              ${property.price.toLocaleString()}
+              {Number(property.price.toLocaleString()) / 10 ** 18} $AVAX
             </span>
           </div>
 
           {/* Details */}
           <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-400">
-            <span>{property.bedrooms} BHK</span>
+            <span className="flex items-center">
+              {" "}
+              <Home className="w-4 h-4 mr-2" />
+              {property.bedrooms} BHK
+            </span>
             <span>•</span>
-            <span>{property.sqft} sqft</span>
+            <span className="flex items-center">
+              <Maximize2 className="w-4 h-4 mr-2" />
+              {property.sqft} sqft
+            </span>
           </div>
 
           {/* Token Info */}
@@ -55,13 +72,13 @@ export default function ListCard(props: any) {
                   alt="coin"
                   className="w-4 h-4 ml-2 items-center mt-1"
                 />
-                {property.tokenPrice}
+                {Number(property.tokenPrice.toString()) / 10 ** 18}
               </span>
             </div>
             <div className="justify-self-start sm:justify-self-end">
               <span>Available:</span>
               <span className="ml-1 font-medium text-lime-400">
-                {property.availableTokens} tokens
+                {Number(property.availableTokens / 10 ** 18)} $PROP
               </span>
             </div>
           </div>
@@ -69,13 +86,32 @@ export default function ListCard(props: any) {
 
         {/* Footer */}
         <CardFooter className="flex flex-wrap items-center gap-2 p-4 pt-1">
-          <Button
-            className="flex-1 bg-lime-400 text-black hover:bg-lime-500 text-sm"
-            disabled={property.availableTokens === 0}
-            // onClick={() => handleClick()}
-          >
-            Invest
-          </Button>
+          <Dialog onOpenChange={(open) => setShowInvestButton(!open)}>
+            <DialogTrigger asChild>
+              {showInvestButton && (
+                <Button
+                  className="flex-1 bg-lime-400 text-black hover:bg-lime-500 text-sm"
+                  disabled={property.availableTokens === 0}
+                >
+                  Invest
+                </Button>
+              )}
+            </DialogTrigger>
+            <DialogContent>
+              <div className="p-4">
+                <h2 className="text-lg font-semibold">
+                  Invest in {property.name}
+                </h2>
+                <p className="text-sm text-gray-400 mt-2">
+                  You are about to invest in {property.name}. Are you sure you
+                  want to proceed?
+                </p>
+                <div className="mt-4 flex gap-4">
+                  <InvestForm property={property} />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button
             variant="outline"
             size="icon"

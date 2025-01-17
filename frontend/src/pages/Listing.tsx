@@ -70,6 +70,24 @@ export default function Listing() {
   }, []); // Fetch on component mount
 
   useEffect(() => {
+    console.log("Setting up refetch interval");
+
+    const interval = setInterval(() => {
+      refetch()
+        .then((result: any) => {
+          console.log("Refetch successful: ", result);
+        })
+        .catch((error: any) => {
+          console.error("Error during refetch: ", error);
+        });
+    }, 5000);
+    return () => {
+      console.log("Clearing refetch interval");
+      clearInterval(interval);
+    };
+  }, [refetch]);
+
+  useEffect(() => {
     // Combine backend and contract data when both are available
     if (propertyList && properties.length > 0) {
       const combined = properties
