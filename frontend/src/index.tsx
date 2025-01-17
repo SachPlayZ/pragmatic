@@ -7,6 +7,7 @@ import { config } from "./providers/config.ts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const root = createRoot(document.getElementById("root")!);
 
@@ -28,6 +29,7 @@ root.render(
       >
         <StrictMode>
           <App />
+          <Toaster />
         </StrictMode>
       </RainbowKitProvider>
     </QueryClientProvider>

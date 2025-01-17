@@ -21,9 +21,13 @@ import {
   DialogDescription,
 } from "./ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import MapComponent from "./functions/Map";
 import { useAccount } from "wagmi";
+import { usePropertyListing } from "../components/functions/ListProperty";
+import { useToast } from "@/hooks/use-toast";
 
+// Form validation schema defines the expected shape and validation rules for our form data
 const formSchema = z.object({
   name: z.string().min(1, "Name cannot be empty"),
   location: z.object({
@@ -37,7 +41,7 @@ const formSchema = z.object({
     })
     .transform((val) => Number(val))
     .refine((val) => val >= 1 && val <= 20, {
-      message: "must be between 1 and 20",
+      message: "Price must be between 1 and 20 TKX",
     }),
   file: z.instanceof(File).optional(),
   bedrooms: z
@@ -56,8 +60,10 @@ const formSchema = z.object({
 
 function ListForm() {
   const { address } = useAccount();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
+  // Initialize form with Zod validation
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,38 +76,89 @@ function ListForm() {
     },
   });
 
+  // Initialize our custom hook for handling property listing on the blockchain
+  const {
+    transactionStatus,
+    loadingListing,
+    submitTxListingLoading,
+    successListing,
+    submitTxListingSuccess,
+    errorListing,
+    submitTxError,
+    listProperty,
+  } = usePropertyListing({ price: form.watch("price") || 0 });
+
+  // Main form submission handler that coordinates both blockchain and backend operations
   async function onSubmit(data: any) {
     try {
-      console.log("Form submitted:", {
-        ...data,
-        file: data.file ? data.file.name : "No file selected",
-      });
+      // First initiate the blockchain transaction
+      await listProperty();
 
-      const result = await fetch(
-        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            owner: address,
-            name: data.name,
-            location: data.location,
-            price: data.price,
-            bedrooms: data.bedrooms,
-            sqft: data.sqft,
-          }),
+      // Only proceed with the rest if blockchain transaction succeeds
+      if (submitTxListingSuccess) {
+        // Handle image upload to Cloudinary
+        const formData = new FormData();
+        formData.append("file", data.file);
+        formData.append("upload_preset", "tokenx-prop");
+
+        const imageUploadResponse = await fetch(
+          "https://api.cloudinary.com/v1_1/de9fzqkly/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!imageUploadResponse.ok) {
+          throw new Error("Failed to upload image");
         }
-      );
-      console.log("Result:", result);
-      setOpen(false);
-      form.reset();
+
+        const imageData = await imageUploadResponse.json();
+
+        // Submit property data to our backend
+        const propertyResponse = await fetch(
+          `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              owner: address,
+              name: data.name,
+              location: `${data.location.lat},${data.location.lng}`,
+              price: (data.price * 10 ** 18).toString(),
+              bedrooms: data.bedrooms,
+              sqft: data.sqft,
+              imageUrl: imageData.url,
+              transactionHash: transactionStatus.hash,
+            }),
+          }
+        );
+
+        if (propertyResponse.ok) {
+          setOpen(false);
+          if (successListing)
+            toast({
+              title: "Property Listed",
+              description: "Your property has been listed successfully",
+            });
+          form.reset();
+        } else {
+          throw new Error("Failed to save property details");
+        }
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error in property listing process:", error);
+      if (errorListing || submitTxError)
+        toast({
+          title: "Error",
+          description: "Failed to list property",
+        });
     }
   }
 
+  // Handle map coordinate updates
   const [coordinate, setCoordinate] = useState([0, 0]);
 
   useEffect(() => {
@@ -126,12 +183,35 @@ function ListForm() {
         <DialogDescription className="text-center">
           Fill in the details of your property to list it on the marketplace
         </DialogDescription>
+
+        {/* Transaction Status Alert */}
+        {transactionStatus.status && (
+          <Alert
+            className={`mb-4 ${
+              submitTxListingSuccess
+                ? "bg-green-500/20"
+                : submitTxError
+                ? "bg-red-500/20"
+                : "bg-blue-500/20"
+            }`}
+          >
+            <AlertDescription>
+              {transactionStatus.status}
+              {transactionStatus.hash && (
+                <span className="block text-xs mt-1 opacity-80">
+                  Transaction Hash: {transactionStatus.hash}
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 p-2"
           >
-            {/* Name Field */}
+            {/* Property Name Input */}
             <FormField
               control={form.control}
               name="name"
@@ -151,6 +231,7 @@ function ListForm() {
               )}
             />
 
+            {/* Location Selection Map */}
             <FormField
               control={form.control}
               name="location"
@@ -174,7 +255,7 @@ function ListForm() {
             />
 
             <div className="flex space-x-4">
-              {/* Image Field */}
+              {/* Image Upload Input */}
               <FormField
                 control={form.control}
                 name="file"
@@ -189,7 +270,6 @@ function ListForm() {
                           const file = e.target.files?.[0];
                           if (file) {
                             onChange(file);
-                            //setPreviewUrl(URL.createObjectURL(file));
                           }
                         }}
                         {...field}
@@ -207,7 +287,7 @@ function ListForm() {
                 )}
               />
 
-              {/* Price Field */}
+              {/* Price Input */}
               <FormField
                 control={form.control}
                 name="price"
@@ -229,7 +309,7 @@ function ListForm() {
             </div>
 
             <div className="flex space-x-4">
-              {/* Bedrooms Field */}
+              {/* Bedrooms Input */}
               <FormField
                 control={form.control}
                 name="bedrooms"
@@ -249,7 +329,7 @@ function ListForm() {
                 )}
               />
 
-              {/* Square Feet Field */}
+              {/* Square Feet Input */}
               <FormField
                 control={form.control}
                 name="sqft"
@@ -270,11 +350,15 @@ function ListForm() {
               />
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-lime-400 to-green-500 text-black font-semibold hover:from-lime-500 hover:to-green-600 transition duration-300 ease-in-out"
+              disabled={loadingListing || submitTxListingLoading}
             >
-              List Property
+              {loadingListing || submitTxListingLoading
+                ? "Processing..."
+                : "List Property"}
             </Button>
           </form>
         </Form>
