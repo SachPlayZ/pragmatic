@@ -93,60 +93,62 @@ function ListForm() {
     try {
       // First initiate the blockchain transaction
       await listProperty();
+      console.log("Form data:", data);
 
       // Only proceed with the rest if blockchain transaction succeeds
-      if (submitTxListingSuccess) {
-        // Handle image upload to Cloudinary
-        const formData = new FormData();
-        formData.append("file", data.file);
-        formData.append("upload_preset", "tokenx-prop");
+      // if (submitTxListingSuccess) {
+      // Handle image upload to Cloudinary
+      const formData = new FormData();
+      formData.append("file", data.file);
+      formData.append("upload_preset", "tokenx-prop");
 
-        const imageUploadResponse = await fetch(
-          "https://api.cloudinary.com/v1_1/de9fzqkly/image/upload",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!imageUploadResponse.ok) {
-          throw new Error("Failed to upload image");
+      const imageUploadResponse = await fetch(
+        "https://api.cloudinary.com/v1_1/de9fzqkly/image/upload",
+        {
+          method: "POST",
+          body: formData,
         }
+      );
 
-        const imageData = await imageUploadResponse.json();
+      if (!imageUploadResponse.ok) {
+        throw new Error("Failed to upload image");
+      }
 
-        // Submit property data to our backend
-        const propertyResponse = await fetch(
-          `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              owner: address,
-              name: data.name,
-              location: `${data.location.lat},${data.location.lng}`,
-              price: (data.price * 10 ** 18).toString(),
-              bedrooms: data.bedrooms,
-              sqft: data.sqft,
-              imageUrl: imageData.url,
-              transactionHash: transactionStatus.hash,
-            }),
-          }
-        );
+      const imageData = await imageUploadResponse.json();
 
-        if (propertyResponse.ok) {
-          setOpen(false);
-          if (successListing)
-            toast({
-              title: "Property Listed",
-              description: "Your property has been listed successfully",
-            });
-          form.reset();
-        } else {
-          throw new Error("Failed to save property details");
+      // Submit property data to our backend
+      const propertyResponse = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            owner: address,
+            name: data.name,
+            location: `${data.location.lat},${data.location.lng}`,
+            price: (data.price * 10 ** 18).toString(),
+            bedrooms: data.bedrooms,
+            sqft: data.sqft,
+            imageUrl: imageData.url,
+            ammenities: "bamboo",
+          }),
         }
+      );
+
+      console.log("Property response:", propertyResponse);
+
+      if (propertyResponse.ok) {
+        setOpen(false);
+        if (successListing)
+          toast({
+            title: "Property Listed",
+            description: "Your property has been listed successfully",
+          });
+        form.reset();
+      } else {
+        throw new Error("Failed to save property details");
       }
     } catch (error) {
       console.error("Error in property listing process:", error);

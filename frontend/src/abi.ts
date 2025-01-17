@@ -299,6 +299,37 @@ export const contractAbi = [
       {
         indexed: true,
         internalType: "address",
+        name: "investor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "propertyId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "returnAmount",
+        type: "uint256",
+      },
+    ],
+    name: "TokensBurned",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "from",
         type: "address",
       },
@@ -457,6 +488,24 @@ export const contractAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_propertyId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+    ],
+    name: "burnTokensFromProperty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "decimals",
     outputs: [
@@ -585,6 +634,92 @@ export const contractAbi = [
         internalType: "struct Check.PropertyDetails",
         name: "",
         type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getPropertiesOnSale",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "resalePrice",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "finalReturnRate",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Check.PropertyOnSaleDetails[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_investor",
+        type: "address",
+      },
+    ],
+    name: "getUserInvestments",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "tokenAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "investmentAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "proposedReturnRate",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "hasVoted",
+            type: "bool",
+          },
+          {
+            internalType: "bool",
+            name: "exists",
+            type: "bool",
+          },
+        ],
+        internalType: "struct Check.Investment[]",
+        name: "",
+        type: "tuple[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
       },
     ],
     stateMutability: "view",
@@ -894,4 +1029,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x12Cc82427cF17De614A3F30FB8e79D91634B86F7";
+export const contractAddress = "0x5e8C0e894a04D52af33A965ceD7a4555b56E6136";

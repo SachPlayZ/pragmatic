@@ -2,60 +2,9 @@ import { motion } from "framer-motion";
 import { Bookmark, Building2 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useWriteContract } from "wagmi";
-import { useState } from "react";
-import { contractAbi, contractAddress } from "@/abi";
-import { parseEther } from "viem";
-import { handleClick } from "./functions/ListProperty";
 
 export default function ListCard(props: any) {
   const { property } = props;
-  const price = 1;
-  const [transactionStatus, setTransactionStatus] = useState<string | null>(
-    null
-  );
-  const [transactionHash, setTransactionHash] = useState<string | undefined>(
-    undefined
-  );
-  const { writeContractAsync } = useWriteContract();
-
-  async function handleClick() {
-    try {
-      const tx = await writeContractAsync(
-        {
-          address: contractAddress,
-          abi: contractAbi,
-          functionName: "listProperty",
-          args: [parseEther(price.toString())],
-        },
-        {
-          onSuccess(data: any) {
-            console.log("Transaction successful!", data);
-            setTransactionStatus("Transaction submitted!");
-            setTransactionHash(data?.hash);
-          },
-          onSettled(data: any, error: any) {
-            if (error) {
-              setTransactionStatus("Transaction failed.");
-              console.error("Error on settlement:", error);
-            } else {
-              console.log("Transaction settled:", data);
-              setTransactionStatus("Transaction confirmed!");
-              setTransactionHash(data?.hash);
-            }
-          },
-        }
-      );
-      if (tx) {
-        console.log("Transaction hash:", tx);
-        setTransactionHash(tx);
-        setTransactionStatus("Transaction confirmed!");
-      }
-    } catch (error) {
-      console.error("Error submitting transaction:", error);
-      setTransactionStatus("Transaction failed.");
-    }
-  }
 
   return (
     <motion.div
@@ -123,7 +72,7 @@ export default function ListCard(props: any) {
           <Button
             className="flex-1 bg-lime-400 text-black hover:bg-lime-500 text-sm"
             disabled={property.availableTokens === 0}
-            onClick={() => handleClick()}
+            // onClick={() => handleClick()}
           >
             Invest
           </Button>
