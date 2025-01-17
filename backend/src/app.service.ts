@@ -22,8 +22,17 @@ export class AppService {
 
   async addProperty(data: PropertyDto) {
     try {
+      const props = await this.prisma.property.findMany();
+      let id;
+      if (!props) {
+        id = 1;
+      }
+      else {
+        id = props.length + 1;
+      }
       await this.prisma.property.create({
         data: {
+          id: id,
           owner: data.owner,
           name: data.name,
           location: data.location,
