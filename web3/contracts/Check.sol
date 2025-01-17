@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title PropertyToken
@@ -12,6 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * representing ownership shares. It includes features for return rate voting and property resale.
  */
 contract Check is ERC20, Ownable {
+    AggregatorV3Interface internal dataFeed;
     struct Property {
         address owner;
         uint256 totalValue; // AVAX
@@ -48,6 +50,19 @@ contract Check is ERC20, Ownable {
         uint256 totalValue;
         uint256 resalePrice;
         uint256 finalReturnRate;
+    }
+
+    struct ListingInfo {
+        uint256 propertyId;
+        uint256 tokenPrice;
+    }
+
+    struct InvestmentInfo {
+        uint256 propertyId;
+        uint256 investmentAmount;
+        uint256 proposedRate;
+        uint256 actualRate;
+        uint256 tokenPrice;
     }
 
     // Platform fee percentage (2%)
@@ -102,7 +117,11 @@ contract Check is ERC20, Ownable {
         uint256 returnAmount
     );
 
-    constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {}
+    constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {
+        dataFeed = AggregatorV3Interface(
+            0x5498BB86BC934c8D34FDA08E81D444153d0D06aD
+        );
+    }
 
     /**
      * @dev Lists a new property for tokenization
@@ -384,5 +403,141 @@ contract Check is ERC20, Ownable {
         require(success, "AVAX transfer failed");
 
         emit TokensBurned(msg.sender, _propertyId, tokensToBurn, shareOfResale);
+    }
+
+    function getChainlinkDataFeedLatestAnswer() public view returns (int) {
+        // prettier-ignore
+        (
+            /* uint80 roundID */,
+            int answer,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = dataFeed.latestRoundData();
+        return answer;
+    }
+
+    /**
+     * @dev Retrieves overall statistics for a given wallet address
+     * @param _wallet Address to get stats for
+     * @return multiplier Current AVAX to USD multiplier
+     * @return totalListings Number of properties listed by this wallet
+     * @return totalSpentAVAX Total AVAX spent on investments
+     */
+    function getDashboardStats(
+        address _wallet
+    )
+        external
+        view
+        returns (int multiplier, uint256 totalListings, uint256 totalSpentAVAX)
+    {
+        // Count listings and accumulate investments
+        for (uint256 i = 0; i < allPropertyIds.length; i++) {
+            uint256 propertyId = allPropertyIds[i];
+            Property storage prop = property[propertyId];
+
+            // Count if this wallet is the property owner
+            if (prop.owner == _wallet) {
+                totalListings++;
+            }
+
+            // Add up investments if they exist
+            Investment storage investment = investments[_wallet][propertyId];
+            if (investment.exists) {
+                totalSpentAVAX += investment.investmentAmount;
+            }
+        }
+        multiplier = getChainlinkDataFeedLatestAnswer();
+        return (multiplier, totalListings, totalSpentAVAX);
+    }
+
+    /**
+     * @dev Gets all active listings for a specific wallet
+     * @param _wallet Address to get listings for
+     * @return Array of ListingInfo structs containing property details
+     */
+    function getWalletListings(
+        address _wallet
+    ) external view returns (ListingInfo[] memory) {
+        // First pass: count active listings
+        uint256 activeListingCount = 0;
+        for (uint256 i = 0; i < allPropertyIds.length; i++) {
+            uint256 propertyId = allPropertyIds[i];
+            Property storage prop = property[propertyId];
+            if (prop.owner == _wallet && prop.isListed) {
+                activeListingCount++;
+            }
+        }
+
+        // Initialize return array with correct size
+        ListingInfo[] memory listings = new ListingInfo[](activeListingCount);
+
+        // Second pass: populate array
+        uint256 currentIndex = 0;
+        for (uint256 i = 0; i < allPropertyIds.length; i++) {
+            uint256 propertyId = allPropertyIds[i];
+            Property storage prop = property[propertyId];
+            if (prop.owner == _wallet && prop.isListed) {
+                // Calculate token price: totalValue / totalTokens
+                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_AVAX) /
+                    prop.totalTokens;
+
+                listings[currentIndex] = ListingInfo({
+                    propertyId: propertyId,
+                    tokenPrice: tokenPrice
+                });
+                currentIndex++;
+            }
+        }
+
+        return listings;
+    }
+
+    /**
+     * @dev Gets all investments made by a specific wallet
+     * @param _wallet Address to get investments for
+     * @return Array of InvestmentInfo structs containing investment details
+     */
+    function getWalletInvestments(
+        address _wallet
+    ) external view returns (InvestmentInfo[] memory) {
+        // First pass: count investments
+        uint256 investmentCount = 0;
+        for (uint256 i = 0; i < allPropertyIds.length; i++) {
+            if (investments[_wallet][allPropertyIds[i]].exists) {
+                investmentCount++;
+            }
+        }
+
+        // Initialize return array
+        InvestmentInfo[] memory investmentInfos = new InvestmentInfo[](
+            investmentCount
+        );
+
+        // Second pass: populate array
+        uint256 currentIndex = 0;
+        for (uint256 i = 0; i < allPropertyIds.length; i++) {
+            uint256 propertyId = allPropertyIds[i];
+            Investment storage investment = investments[_wallet][propertyId];
+
+            if (investment.exists) {
+                Property storage prop = property[propertyId];
+                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_AVAX) /
+                    prop.totalTokens;
+
+                investmentInfos[currentIndex] = InvestmentInfo({
+                    propertyId: propertyId,
+                    investmentAmount: investment.investmentAmount,
+                    proposedRate: investment.proposedReturnRate,
+                    actualRate: prop.returnRateFinalized
+                        ? prop.finalReturnRate
+                        : 0,
+                    tokenPrice: tokenPrice
+                });
+                currentIndex++;
+            }
+        }
+
+        return investmentInfos;
     }
 }
