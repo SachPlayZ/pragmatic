@@ -1,6 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PropertyDto } from './dto/propertyDto';
+import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
 import { PrismaService } from 'lib/common/database/prisma.service';
+import { generateAnswers, generateComparison, generateDescription } from 'lib/genAI/gen';
+
+interface Context { 
+  role: string; 
+  content: string 
+};
 
 @Injectable()
 export class AppService {
@@ -20,7 +26,8 @@ export class AppService {
         price: data.price,
         bedrooms: data.bedrooms,
         sqft: data.sqft,
-        imageUrl: data.imageUrl
+        imageUrl: data.imageUrl,
+        ammenities: data.ammenities
       }
     });
     return { message: 'Property added successfully' , status: 200};
@@ -31,6 +38,21 @@ export class AppService {
         HttpStatus.BAD_REQUEST,
       );
   }
+  }
+
+  async getAnswer(query: string, context?: Context[]) {
+    if (!context) {
+      context = [];
+    }
+    return await generateAnswers(query, context);
+  }
+
+  async getDescription(data: PropertyDto) {
+    return await generateDescription(data);
+  }
+
+  async getComparison(data: PropertyComparisonDto[]) {
+    return await generateComparison(data);
   }
 
   async getAllProperties() {

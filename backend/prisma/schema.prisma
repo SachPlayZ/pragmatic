@@ -11,13 +11,14 @@ datasource db {
 }
 
 model Property {
-  id       Int       @id @default(autoincrement())
-  owner    String
-  name     String
-  location String
-  price    String
-  bedrooms Int
-  sqft     Int
-  listDate DateTime? @default(now())
-  imageUrl String    @default("https://reviveyouthandfamily.org/wp-content/uploads/2016/11/house-placeholder.jpg")
+  id          Int       @id @default(autoincrement())
+  owner       String
+  name        String
+  location    String
+  price       String
+  bedrooms    Int
+  sqft        Int
+  listDate    DateTime? @default(now())
+  imageUrl    String    @default("https://reviveyouthandfamily.org/wp-content/uploads/2016/11/house-placeholder.jpg")
+  ammenities  String
 }

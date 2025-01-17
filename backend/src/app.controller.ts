@@ -1,6 +1,11 @@
 import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { PropertyDto } from './dto/propertyDto';
+import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
+
+interface Context { 
+  role: string; 
+  content: string 
+};
 
 @Controller()
 export class AppController {
@@ -14,6 +19,21 @@ export class AppController {
   @Post("property")
   addProperty(@Body() data: PropertyDto) {
     return this.appService.addProperty(data);
+  }
+
+  @Post("getComparison")
+  getComparison(@Body() data: PropertyComparisonDto[]) {
+    return this.appService.getComparison(data);
+  }
+
+  @Post("getAnswer")
+  getAnswer(query: string, context?: Context[]) {
+    return this.appService.getAnswer(query, context);
+  }
+
+  @Post("getDescription")
+  getDescription(@Body() data: PropertyDto) {
+    return this.appService.getDescription(data);
   }
 
   @Get("property")

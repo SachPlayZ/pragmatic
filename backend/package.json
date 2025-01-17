@@ -20,10 +20,14 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.24",
+    "@langchain/google-genai": "^0.1.6",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "6.2.1",
+    "faiss-node": "^0.5.1",
+    "langchain": "^0.3.11",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
