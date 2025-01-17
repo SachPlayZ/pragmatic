@@ -64,8 +64,8 @@ contract Check is ERC20, Ownable {
     uint256 private propertyCounter;
     // Mapping of property investments per address
     mapping(address => mapping(uint256 => Investment)) public investments;
-    // Burn limits per property
-    mapping(uint256 => uint256) public burnLimits;
+    // // Burn limits per property
+    // mapping(uint256 => uint256) public burnLimits;
     // Available liquidity per property
     mapping(uint256 => uint256) public propertyLiquidity;
     // Track total weighted votes per property
@@ -350,36 +350,39 @@ contract Check is ERC20, Ownable {
     /**
      * @dev Allows token holders to burn their tokens and receive their share of property value
      * @param _propertyId The ID of the property
-     * @param _amount The amount of tokens to burn
      */
-    function burnTokensFromProperty(
-        uint256 _propertyId,
-        uint256 _amount
-    ) external {
+    function burnTokensFromProperty(uint256 _propertyId) external {
         Property storage prop = property[_propertyId];
         require(prop.returnRateFinalized, "Return rate not finalized");
         require(prop.forSale, "Property not for sale");
 
         Investment storage investment = investments[msg.sender][_propertyId];
-        require(
-            investment.exists && investment.tokenAmount >= _amount,
-            "Insufficient tokens"
-        );
-        require(burnLimits[_propertyId] >= _amount, "Burn limit exceeded");
+        require(investment.exists, "No investment found");
+        require(investment.tokenAmount > 0, "No tokens to burn");
 
-        uint256 shareOfResale = (prop.resalePrice * _amount) / prop.totalTokens;
+        // Calculate their share of the resale price based on their tokens
+        uint256 shareOfResale = (prop.resalePrice * investment.tokenAmount) /
+            prop.totalTokens;
         require(
             propertyLiquidity[_propertyId] >= shareOfResale,
             "Insufficient liquidity"
         );
 
-        investment.tokenAmount -= _amount;
-        burnLimits[_propertyId] -= _amount;
+        // Store token amount to burn
+        uint256 tokensToBurn = investment.tokenAmount;
+
+        // Clear the investment record
+        investment.tokenAmount = 0;
+        investment.exists = false;
+
+        // Update property liquidity
         propertyLiquidity[_propertyId] -= shareOfResale;
 
-        _burn(msg.sender, _amount);
-        payable(msg.sender).transfer(shareOfResale);
+        // Burn tokens and transfer AVAX
+        _burn(msg.sender, tokensToBurn);
+        (bool success, ) = payable(msg.sender).call{value: shareOfResale}("");
+        require(success, "AVAX transfer failed");
 
-        emit TokensBurned(msg.sender, _propertyId, _amount, shareOfResale);
+        emit TokensBurned(msg.sender, _propertyId, tokensToBurn, shareOfResale);
     }
 }

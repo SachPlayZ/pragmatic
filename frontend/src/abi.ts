@@ -472,31 +472,7 @@ export const contractAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "burnLimits",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "_propertyId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_amount",
         type: "uint256",
       },
     ],
@@ -1029,4 +1005,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x5e8C0e894a04D52af33A965ceD7a4555b56E6136";
+export const contractAddress = "0x4c41E3d779bB35114e2776B11410c84FA728a284";
