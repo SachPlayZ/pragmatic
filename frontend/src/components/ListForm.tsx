@@ -41,7 +41,7 @@ const formSchema = z.object({
     })
     .transform((val) => Number(val))
     .refine((val) => val >= 1 && val <= 20, {
-      message: "Price must be between 1 and 20 TKX",
+      message: "Price must be between 1 and 20 AVAX",
     }),
   file: z.instanceof(File).optional(),
   bedrooms: z
@@ -295,11 +295,11 @@ function ListForm() {
                 name="price"
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>Price (in TKX)</FormLabel>
+                    <FormLabel>Price (in AVAX)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Price (in TKX)"
+                        placeholder="Price (in AVAX)"
                         {...field}
                         className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
                       />

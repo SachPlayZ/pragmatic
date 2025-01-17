@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import PropertyCard from "@/components/ProductCard";
+import GetPropOnSale from "@/components/functions/GetPropOnSale";
+import { useEffect, useState } from "react";
 
 const properties = [
   {
@@ -43,6 +45,27 @@ const properties = [
 ];
 
 export default function Properties() {
+  const { data, refetch } = GetPropOnSale();
+  const [propertyList, setPropertyList] = useState([]);
+
+  useEffect(() => {
+    console.log("Setting up refetch interval");
+
+    const interval = setInterval(() => {
+      refetch()
+        .then((result: any) => {
+          console.log("Refetch successful: ", result);
+        })
+        .catch((error: any) => {
+          console.error("Error during refetch: ", error);
+        });
+    }, 5000);
+    return () => {
+      console.log("Clearing refetch interval");
+      clearInterval(interval);
+    };
+  }, [refetch]);
+
   return (
     <div className="min-h-screen bg-[#0A1A1F] relative overflow-hidden">
       {/* Gradient Orbs */}

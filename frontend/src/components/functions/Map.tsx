@@ -22,8 +22,8 @@ const MapComponent = ({
 
   // Example marker location
   const marker: Marker = {
-    longitude: 77.61648476788898,
-    latitude: 12.931423492103944,
+    longitude: 88.361689,
+    latitude: 22.527418,
     color: "red",
   };
 
