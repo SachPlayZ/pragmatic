@@ -19,7 +19,7 @@ contract Check is ERC20, Ownable {
         bool isListed; // Can be removed
         uint256 rentalIncome; // Later
         uint256 resalePrice;
-        bool forSale;
+        bool forSale; // Ensure this line is present in the Property struct
         uint256 finalReturnRate; // Weighted average return rate
         uint256 totalInvestedTokens; // Track total tokens invested
         bool returnRateFinalized; // Whether return rate voting is complete
@@ -41,6 +41,13 @@ contract Check is ERC20, Ownable {
         uint256 proposedReturnRate; // Investor's proposed return rate
         bool hasVoted; // Track if investor has voted on return rate
         bool exists;
+    }
+
+    struct PropertyOnSaleDetails {
+        address owner;
+        uint256 totalValue;
+        uint256 resalePrice;
+        uint256 finalReturnRate;
     }
 
     // Platform fee percentage (2%)
@@ -88,6 +95,12 @@ contract Check is ERC20, Ownable {
         uint256 weight
     );
     event ReturnRateFinalized(uint256 indexed propertyId, uint256 finalRate);
+    event TokensBurned(
+        address indexed investor,
+        uint256 propertyId,
+        uint256 amount,
+        uint256 returnAmount
+    );
 
     constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {}
 
@@ -246,7 +259,16 @@ contract Check is ERC20, Ownable {
         if (prop.totalInvestedTokens == prop.totalTokens) {
             prop.returnRateFinalized = true;
             prop.resalePrice = calculateResalePrice(_propertyId);
-            // prop.forSale = true;
+            prop.forSale = true;
+            propertiesOnSale.push(_propertyId);
+
+            (bool success, ) = payable(prop.owner).call{value: prop.totalValue}(
+                ""
+            );
+            require(success, "Transfer failed.");
+
+            // // Set the contract as the new owner of the property
+            // prop.owner = address(this);
             emit ReturnRateFinalized(_propertyId, prop.finalReturnRate);
         }
     }
@@ -262,5 +284,102 @@ contract Check is ERC20, Ownable {
         Property storage prop = property[_propertyId];
         uint256 returnAmount = (prop.totalValue * prop.finalReturnRate) / 100;
         return prop.totalValue + returnAmount;
+    }
+
+    /**
+     * @dev Gets detailed information about a property that is on sale
+     * @return PropertyOnSaleDetails struct containing property details
+     */
+    function getPropertiesOnSale()
+        external
+        view
+        returns (PropertyOnSaleDetails[] memory)
+    {
+        PropertyOnSaleDetails[]
+            memory propertiesOnSaleDetails = new PropertyOnSaleDetails[](
+                propertiesOnSale.length
+            );
+        for (uint256 i = 0; i < propertiesOnSale.length; i++) {
+            Property storage prop = property[propertiesOnSale[i]];
+            propertiesOnSaleDetails[i] = PropertyOnSaleDetails({
+                owner: prop.owner,
+                totalValue: prop.totalValue,
+                resalePrice: prop.resalePrice,
+                finalReturnRate: prop.finalReturnRate
+            });
+        }
+        return propertiesOnSaleDetails;
+    }
+
+    /**
+     * @dev Retrieves all investments made by a user across all properties.
+     * @param _investor The address of the investor.
+     * @return An array of Investment details and an array of property IDs associated with those investments.
+     */
+    function getUserInvestments(
+        address _investor
+    ) external view returns (Investment[] memory, uint256[] memory) {
+        uint256 totalProperties = allPropertyIds.length;
+        uint256 investmentCount = 0;
+
+        // First pass: Count the number of investments
+        for (uint256 i = 0; i < totalProperties; i++) {
+            if (investments[_investor][allPropertyIds[i]].exists) {
+                investmentCount++;
+            }
+        }
+
+        // Allocate arrays for investments and property IDs
+        Investment[] memory userInvestments = new Investment[](investmentCount);
+        uint256[] memory propertyIds = new uint256[](investmentCount);
+
+        // Second pass: Populate the arrays
+        uint256 index = 0;
+        for (uint256 i = 0; i < totalProperties; i++) {
+            uint256 propertyId = allPropertyIds[i];
+            if (investments[_investor][propertyId].exists) {
+                userInvestments[index] = investments[_investor][propertyId];
+                propertyIds[index] = propertyId;
+                index++;
+            }
+        }
+
+        return (userInvestments, propertyIds);
+    }
+
+    /**
+     * @dev Allows token holders to burn their tokens and receive their share of property value
+     * @param _propertyId The ID of the property
+     * @param _amount The amount of tokens to burn
+     */
+    function burnTokensFromProperty(
+        uint256 _propertyId,
+        uint256 _amount
+    ) external {
+        Property storage prop = property[_propertyId];
+        require(prop.returnRateFinalized, "Return rate not finalized");
+        require(prop.forSale, "Property not for sale");
+
+        Investment storage investment = investments[msg.sender][_propertyId];
+        require(
+            investment.exists && investment.tokenAmount >= _amount,
+            "Insufficient tokens"
+        );
+        require(burnLimits[_propertyId] >= _amount, "Burn limit exceeded");
+
+        uint256 shareOfResale = (prop.resalePrice * _amount) / prop.totalTokens;
+        require(
+            propertyLiquidity[_propertyId] >= shareOfResale,
+            "Insufficient liquidity"
+        );
+
+        investment.tokenAmount -= _amount;
+        burnLimits[_propertyId] -= _amount;
+        propertyLiquidity[_propertyId] -= shareOfResale;
+
+        _burn(msg.sender, _amount);
+        payable(msg.sender).transfer(shareOfResale);
+
+        emit TokensBurned(msg.sender, _propertyId, _amount, shareOfResale);
     }
 }
