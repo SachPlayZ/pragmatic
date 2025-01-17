@@ -27,8 +27,8 @@ export class AppController {
   }
 
   @Post("getAnswer")
-  getAnswer(query: string, context?: Context[]) {
-    return this.appService.getAnswer(query, context);
+  getAnswer(@Body() data: {query: string, context?: Context[]}) {
+    return this.appService.getAnswer(data);
   }
 
   @Post("getDescription")

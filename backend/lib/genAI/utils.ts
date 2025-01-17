@@ -34,5 +34,5 @@ export const generate = async (
         throw new Error(`Beyond API error: ${response.statusText}`);
     }
     const res = await response.json();
-    return JSON.stringify(res.choices[0].message.content);
+    return res.choices[0].message.content;
 }

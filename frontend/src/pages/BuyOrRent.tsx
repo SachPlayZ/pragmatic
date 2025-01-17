@@ -51,8 +51,8 @@ export default function Properties() {
         <div className="absolute top-1/2 -right-40 w-96 h-96 bg-[#D0FD3E]/20 rounded-full blur-3xl" />
       </div>
 
-      <main className="pt-10">
-        <section className="container mx-auto px-4 py-20 md:py-32 max-w-6xl">
+      <main>
+        <section className="container mx-auto px-4 py-10 md:py-28 max-w-6xl">
           <motion.h1
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

@@ -152,8 +152,7 @@ async function createVectorStore() {
 export async function getContext(query: string): Promise<string> {
     const manager = new VectorStoreManager();
 
-    await manager.loadVectorStore("vector_store");
-
+    await manager.loadVectorStore("./vector_store");
     const searchResults = await manager.semanticSearch(
         query,
         3

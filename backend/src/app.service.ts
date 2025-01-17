@@ -40,11 +40,15 @@ export class AppService {
   }
   }
 
-  async getAnswer(query: string, context?: Context[]) {
+  async getAnswer(data: {query: string, context?: Context[]}) {
+    const { query, context } = data;
+    let cont;
     if (!context) {
-      context = [];
+      cont = [];
     }
-    return await generateAnswers(query, context);
+    return {
+      answer: await generateAnswers(query, cont)
+    };
   }
 
   async getDescription(data: PropertyDto) {
