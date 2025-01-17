@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
 
-interface Context { 
-  role: string; 
-  content: string 
-};
+interface Context {
+  role: string;
+  content: string;
+}
 
 @Controller()
 export class AppController {
@@ -16,42 +16,43 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post("property")
+  @Post('property')
   addProperty(@Body() data: PropertyDto) {
+    // console.log('property boi');
     return this.appService.addProperty(data);
   }
 
-  @Post("getComparison")
+  @Post('getComparison')
   getComparison(@Body() data: PropertyComparisonDto[]) {
     return this.appService.getComparison(data);
   }
 
-  @Post("getAnswer")
-  getAnswer(@Body() data: {query: string, context?: Context[]}) {
+  @Post('getAnswer')
+  getAnswer(@Body() data: { query: string; context?: Context[] }) {
     return this.appService.getAnswer(data);
   }
 
-  @Post("getDescription")
+  @Post('getDescription')
   getDescription(@Body() data: PropertyDto) {
     return this.appService.getDescription(data);
   }
 
-  @Get("property")
+  @Get('property')
   getAllProperties() {
     return this.appService.getAllProperties();
   }
 
-  @Get("property/:id")
+  @Get('property/:id')
   getPropertyById(id: number) {
     return this.appService.getPropertyById(id);
   }
 
-  @Patch("property/:id")
+  @Patch('property/:id')
   updateProperty(id: number, @Body() data: PropertyDto) {
     return this.appService.updateProperty(id, data);
   }
 
-  @Delete("property/:id")
+  @Delete('property/:id')
   deleteProperty(id: number) {
     return this.appService.deleteProperty(id);
   }

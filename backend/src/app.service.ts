@@ -1,53 +1,57 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
 import { PrismaService } from 'lib/common/database/prisma.service';
-import { generateAnswers, generateComparison, generateDescription } from 'lib/genAI/gen';
+import {
+  generateAnswers,
+  generateComparison,
+  generateDescription,
+} from 'lib/genAI/gen';
 
-interface Context { 
-  role: string; 
-  content: string 
-};
+interface Context {
+  role: string;
+  content: string;
+}
 
 @Injectable()
 export class AppService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   getHello(): string {
     return 'Hello World!';
   }
 
   async addProperty(data: PropertyDto) {
-    try{
-    await this.prisma.property.create({
-      data: {
-        owner: data.owner,
-        name: data.name,
-        location: data.location,
-        price: data.price,
-        bedrooms: data.bedrooms,
-        sqft: data.sqft,
-        imageUrl: data.imageUrl,
-        ammenities: data.ammenities
-      }
-    });
-    return { message: 'Property added successfully' , status: 200};
-  } catch (error) {
-    console.log('Error creating user:', error);
+    try {
+      await this.prisma.property.create({
+        data: {
+          owner: data.owner,
+          name: data.name,
+          location: data.location,
+          price: data.price,
+          bedrooms: data.bedrooms,
+          sqft: data.sqft,
+          imageUrl: data.imageUrl,
+          ammenities: data.ammenities,
+        },
+      });
+      return { message: 'Property added successfully', status: 200 };
+    } catch (error) {
+      console.log('Error creating user:', error);
       throw new HttpException(
         'Failed to Subscribing user, try again or come back later.',
         HttpStatus.BAD_REQUEST,
       );
-  }
+    }
   }
 
-  async getAnswer(data: {query: string, context?: Context[]}) {
+  async getAnswer(data: { query: string; context?: Context[] }) {
     const { query, context } = data;
     let cont;
     if (!context) {
       cont = [];
     }
     return {
-      answer: await generateAnswers(query, cont)
+      answer: await generateAnswers(query, cont),
     };
   }
 
@@ -66,32 +70,31 @@ export class AppService {
   async getPropertyById(id: number) {
     return await this.prisma.property.findUnique({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
   }
 
   async updateProperty(id: number, data: PropertyDto) {
     return await this.prisma.property.update({
       where: {
-        id: id
+        id: id,
       },
       data: {
         name: data.name,
         location: data.location,
         bedrooms: data.bedrooms,
         sqft: data.sqft,
-        imageUrl: data.imageUrl
-      }
+        imageUrl: data.imageUrl,
+      },
     });
   }
 
   async deleteProperty(id: number) {
     return await this.prisma.property.delete({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
   }
-
 }
