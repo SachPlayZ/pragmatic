@@ -6,129 +6,6 @@ import { GetAllProperties } from "@/components/functions/GetAllProperties";
 import CoolOverlayModal from "@/components/CoolOverlayModal";
 import { GitCompareArrows } from "lucide-react";
 
-// const props = [
-//   {
-//     id: 1,
-//     owner: "248428",
-//     name: "Crazy apartments",
-//     location: "Manhattan",
-//     price: "2",
-//     bedrooms: 3,
-//     sqft: 1491,
-//     imageUrl: "https://picsum.photos/seed/apartment1/800/600",
-//     ammenities: "Pool, Movie Theatre, Community Hall, Orgy Hall",
-//   },
-//   {
-//     id: 2,
-//     owner: "83929",
-//     name: "Bro House",
-//     location: "Beverly Hills",
-//     price: "3",
-//     bedrooms: 3,
-//     sqft: 1832,
-//     imageUrl: "https://picsum.photos/seed/apartment2/800/600",
-//     ammenities: "Pool, Garden, Helipad",
-//   },
-//   {
-//     id: 3,
-//     owner: "123456",
-//     name: "Eco Haven",
-//     location: "Portland",
-//     price: "1.5",
-//     bedrooms: 2,
-//     sqft: 1200,
-//     imageUrl: "https://picsum.photos/seed/apartment3/800/600",
-//     ammenities: "Solar Panels, Organic Garden, Bike Storage",
-//   },
-//   {
-//     id: 4,
-//     owner: "789012",
-//     name: "Skyline Penthouse",
-//     location: "Chicago",
-//     price: "4",
-//     bedrooms: 4,
-//     sqft: 2500,
-//     imageUrl: "https://picsum.photos/seed/apartment4/800/600",
-//     ammenities: "Private Elevator, Rooftop Terrace, Smart Home System",
-//   },
-// ];
-
-const comparisonObject = {
-  "Best Property": 4,
-  "Worst Property": 1,
-  Comparison: [
-    {
-      id: 1,
-      Pros: [
-        "Affordable price",
-        "Community-focused amenities",
-        "Variety of social spaces",
-      ],
-      Cons: [
-        "Smaller square footage",
-        "Less desirable location for some",
-        "Questionable 'Orgy Hall' amenity",
-      ],
-      "Unique Features": ["Orgy Hall", "Movie Theatre", "Community Hall"],
-      "Professional Opinion":
-        "While this property has some unique social spaces, its smaller size and questionable amenities may not appeal to all buyers. The location in Manhattan may also be a drawback for those who prefer a more suburban lifestyle.",
-      "Overall Rating": 3,
-    },
-    {
-      id: 2,
-      Pros: [
-        "Larger square footage",
-        "More desirable location in Beverly Hills",
-        "Unique helipad amenity",
-      ],
-      Cons: ["Higher price point", "Fewer community-focused amenities"],
-      "Unique Features": ["Helipad", "Garden"],
-      "Professional Opinion":
-        "This property offers a more luxurious and spacious living experience, with a unique helipad amenity that will appeal to buyers who value convenience and exclusivity. The location in Beverly Hills is also highly desirable.",
-      "Overall Rating": 4,
-    },
-    {
-      id: 3,
-      Pros: [
-        "Eco-friendly features",
-        "Affordable price point",
-        "Desirable location for nature lovers",
-      ],
-      Cons: [
-        "Smaller square footage",
-        "Fewer bedrooms",
-        "May not appeal to those seeking luxury amenities",
-      ],
-      "Unique Features": ["Solar Panels", "Organic Garden", "Bike Storage"],
-      "Professional Opinion":
-        "This property is perfect for environmentally conscious buyers who prioritize sustainability. While it may be smaller, its eco-friendly features and location in Portland make it an attractive option for a specific market segment.",
-      "Overall Rating": 4,
-    },
-    {
-      id: 4,
-      Pros: [
-        "Spectacular views",
-        "Luxurious amenities",
-        "Large square footage",
-        "Prime location in Chicago",
-      ],
-      Cons: [
-        "Highest price point",
-        "May be too large for some buyers",
-        "High maintenance costs",
-      ],
-      "Unique Features": [
-        "Private Elevator",
-        "Rooftop Terrace",
-        "Smart Home System",
-      ],
-      "Professional Opinion":
-        "This penthouse offers the epitome of luxury living in Chicago. With its breathtaking views, high-end amenities, and smart home features, it's ideal for those seeking a premium urban lifestyle. However, the high price point and maintenance costs may limit its appeal to a select group of buyers.",
-      "Overall Rating": 5,
-    },
-  ],
-};
-
 interface PropertyFromContract {
   owner: string;
   totalValue: string;
@@ -180,26 +57,80 @@ interface Property {
   address: string;
 }
 
+interface ComparisonObject {
+  "Best Property": number;
+  "Worst Property": number;
+  Comparison: Array<{
+    id: number;
+    Pros: string[];
+    Cons: string[];
+    "Unique Features": string[];
+    "Professional Opinion": string;
+    "Overall Rating": number;
+  }>;
+}
+
 export default function Listing() {
-  // State for backend properties
-  const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>(
-    []
-  );
+  const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>([]);
   const [props, setProps] = useState<PropsForCompare[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // New state for combined property data
   const [combinedProperties, setCombinedProperties] = useState<Property[]>([]);
+  const [comparisonData, setComparisonData] = useState<ComparisonObject | null>(null);
 
   const { data: propertyList, refetch } = GetAllProperties();
 
-  const addToComparison = (property: PropsForCompare) => {
+  const fetchComparisonData = async (propertiesToCompare: PropsForCompare[]) => {
+    const propertiesToCompareStringified = propertiesToCompare.map((property) => ({
+      ...property,
+      id: property.id.toString(),
+      price: property.price.toString(),
+      bedrooms: property.bedrooms.toString(),
+      sqft: property.sqft.toString(),
+    }));
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getComparison`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ properties: propertiesToCompareStringified }),
+        }
+      );
+      const data = await response.json();
+      setComparisonData(data);
+    } catch (error) {
+      console.error("Error fetching comparison data:", error);
+    }
+  };
+
+  const addToComparison = async (property: PropsForCompare) => {
+    console.log("Adding to comparison: ");
+    console.log(property);
+    const proper: PropsForCompare = {
+      id: property.id,
+      owner: property.owner,
+      imageUrl: property.imageUrl,
+      name: property.name,
+      location: property.location,
+      price: `${property.price} AVAX`,
+      bedrooms: property.bedrooms,
+      sqft: property.sqft,
+      ammenities: property.ammenities
+    }
     if (!props.some((p) => p.id === property.id)) {
-      setProps([...props, property]);
+      const updatedProps = [...props, proper];
+      setProps(updatedProps);
+      
+      // Fetch comparison data if we have 2 or more properties
+      if (updatedProps.length >= 2) {
+        await fetchComparisonData(updatedProps);
+      }
     }
   };
 
   useEffect(() => {
-    // Fetch properties from backend
     const fetchProperties = async () => {
       try {
         const response = await fetch(
@@ -214,16 +145,34 @@ export default function Listing() {
 
     fetchProperties();
     refetch();
-  }, []); // Fetch on component mount
+  }, []);
+
+  // useEffect(() => {
+  //   console.log("Setting up refetch interval");
+
+  //   const interval = setInterval(() => {
+  //     refetch()
+  //       .then((result: any) => {
+  //         console.log("Refetch successful: ", result);
+  //       })
+  //       .catch((error: any) => {
+  //         console.error("Error during refetch: ", error);
+  //       });
+  //   }, 5000);
+  //   return () => {
+  //     console.log("Clearing refetch interval");
+  //     clearInterval(interval);
+  //   };
+  // }, [refetch]);
 
   useEffect(() => {
     console.log("Setting up refetch interval");
 
     const interval = setInterval(() => {
       refetch()
-        .then((result: any) => {
-          console.log("Refetch successful: ", result);
-        })
+        // .then(() => {
+        //   // console.log("Refetch successful: ", result);
+        // })
         .catch((error: any) => {
           console.error("Error during refetch: ", error);
         });
@@ -235,7 +184,6 @@ export default function Listing() {
   }, [refetch]);
 
   useEffect(() => {
-    // Combine backend and contract data when both are available
     if (propertyList && properties.length > 0) {
       const combined = properties
         .map((property, index) => {
@@ -268,7 +216,7 @@ export default function Listing() {
 
       setCombinedProperties(combined);
     }
-  }, [properties, propertyList]); // Update when either data source changes
+  }, [properties, propertyList]);
 
   return (
     <div className="min-h-screen bg-[#0A1A1F]">
@@ -292,6 +240,7 @@ export default function Listing() {
             </h1>
             <p className="mt-2 text-lg text-gray-400">
               Overview and find a comfortable real estate for your life
+              {/* {JSON.stringify(props)} */}
             </p>
           </motion.div>
 
@@ -316,12 +265,12 @@ export default function Listing() {
       >
         <GitCompareArrows className="h-6 w-6" />
       </button>
-      {props.length > 1 && (
+      {props.length > 1 && comparisonData && (
         <CoolOverlayModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           properties={props}
-          comparisonObject={comparisonObject}
+          comparisonObject={comparisonData}
         />
       )}
     </div>

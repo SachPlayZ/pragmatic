@@ -25,7 +25,7 @@ interface PropsForCompare {
 
 export default function ListCard({ property, addToComparison }: ListCardProps) {
   const [showInvestButton, setShowInvestButton] = useState(true);
-  console.log("Property", property);
+  // console.log("Property", property);
 
   const addCompare = (prop: any) => {
     const propy: PropsForCompare = {

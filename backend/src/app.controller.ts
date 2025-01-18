@@ -22,8 +22,8 @@ export class AppController {
   }
 
   @Post('getComparison')
-  getComparison(@Body() data: PropertyComparisonDto[]) {
-    return this.appService.getComparison(data);
+  getComparison(@Body() data: {properties: PropertyComparisonDto[]}) {
+    return this.appService.getComparison(data.properties);
   }
 
   @Post('getAnswer')
