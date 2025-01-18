@@ -49,6 +49,9 @@ export default function Dashboard() {
   const { address } = useAccount();
   const [avaxUsdPrice, setAvaxUsdPrice] = useState<number>(0);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [investmentProperties, setInvestmentProperties] = useState<Property[]>(
+    []
+  );
 
   // Fetch dashboard stats with proper typing
   const { data: dashboardStats, isLoading: loadingStats } = useReadContract({
@@ -57,6 +60,20 @@ export default function Dashboard() {
     functionName: "getDashboardStats",
     args: [address],
   }) as { data: DashboardStats | undefined; isLoading: boolean };
+  async function getPropertiesByIds(ids: number[]) {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/arrayofids`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids }),
+      }
+    );
+    const data = await response.json();
+    return data as Property[]; // Assuming the response is an array of properties
+  }
 
   // Fetch wallet listings with proper typing
   const { data: listings, isLoading: loadingListings } = useReadContract({
@@ -69,7 +86,7 @@ export default function Dashboard() {
   // Fetch investments with proper typing
   const { data: investments, isLoading: loadingInvestments } = useReadContract({
     address: contractAddress,
-    abi: contractAbi, 
+    abi: contractAbi,
     functionName: "getWalletInvestments",
     args: [address],
   }) as { data: InvestmentInfo[] | undefined; isLoading: boolean };
@@ -91,7 +108,16 @@ export default function Dashboard() {
       }
     }
   }, [dashboardStats, address]);
-
+  useEffect(() => {
+    if (investments) {
+      const propertyIds = investments.map((investment) =>
+        Number(investment.propertyId)
+      );
+      getPropertiesByIds(propertyIds).then((data) =>
+        setInvestmentProperties(data)
+      );
+    }
+  }, [investments]);
   // Add this right after the other contract function call hooks
   const { data: propBalance, isLoading: loadingBalance } = useReadContract({
     address: contractAddress,
@@ -189,7 +215,7 @@ export default function Dashboard() {
                   <li key={index} className="bg-white/5 p-3 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-white">
-                        Property #{investment.propertyId.toString()}
+                        {investmentProperties?.[index]?.name ?? "Loading..."}
                       </span>
                       <span className="text-[#9EF01A] font-semibold">
                         {formatEther(investment.investmentAmount)} AVAX
