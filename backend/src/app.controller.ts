@@ -56,4 +56,9 @@ export class AppController {
   deleteProperty(id: number) {
     return this.appService.deleteProperty(id);
   }
+
+  @Get('property/:owner')
+  getPropertyByOwner(owner: string) {
+    return this.appService.getPropertyByOwner(owner);
+  }
 }

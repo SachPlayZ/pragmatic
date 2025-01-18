@@ -106,4 +106,12 @@ export class AppService {
       },
     });
   }
+
+  async getPropertyByOwner(owner: string) {
+    return await this.prisma.property.findMany({
+      where: {
+        owner: owner,
+      },
+    });
+  }
 }
