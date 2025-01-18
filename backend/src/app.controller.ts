@@ -18,7 +18,6 @@ export class AppController {
 
   @Post('property')
   addProperty(@Body() data: PropertyDto) {
-    // console.log('property boi');
     return this.appService.addProperty(data);
   }
 

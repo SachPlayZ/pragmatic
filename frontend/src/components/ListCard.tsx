@@ -11,8 +11,9 @@ export default function ListCard(props: any) {
   const { property } = props;
   console.log(property);
 
-  const [lat, lon] = property.location.split(",").map(Number);
+  // const [lat, lon] = property.location.split(",").map(Number);
   const [showInvestButton, setShowInvestButton] = useState(true);
+  console.log("Property", property)
 
   return (
     <motion.div
@@ -40,11 +41,13 @@ export default function ListCard(props: any) {
             <div>
               <h3 className="text-lg font-semibold">{property.name}</h3>
               <p className="text-sm text-gray-400">
-                {lat.toFixed(2)}°, {lon.toFixed(2)}°
+                {/* {lat.toFixed(2)}°, {lon.toFixed(2)}° */}
+                {/* <br /> */}
+                {property.address}
               </p>
             </div>
             <span className="mt-2 sm:mt-0 text-lg font-bold text-lime-400">
-              {Number(property.price.toLocaleString()) / 10 ** 18} $AVAX
+              {Number(property.price.toLocaleString()) / 10 ** 18}$AVAX
             </span>
           </div>
 

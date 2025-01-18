@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
 import { PrismaService } from 'lib/common/database/prisma.service';
+import { reverseGeocode } from 'lib/reverseGeocode';
 import {
   generateAnswers,
   generateComparison,
@@ -14,7 +15,7 @@ interface Context {
 
 @Injectable()
 export class AppService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   getHello(): string {
     return 'Hello World!';
@@ -73,7 +74,18 @@ export class AppService {
   }
 
   async getAllProperties() {
-    return await this.prisma.property.findMany();
+    let props = await this.prisma.property.findMany();
+    const propsWithAddresses = await Promise.all(
+      props.map(async (prop) => {
+        const [lat, lon] = prop.location.split(",").map(Number);
+        const address = await reverseGeocode(lat, lon);
+        return {
+          ...prop,
+          address
+        };
+      })
+    );
+    return propsWithAddresses;
   }
 
   async getPropertyById(id: number) {

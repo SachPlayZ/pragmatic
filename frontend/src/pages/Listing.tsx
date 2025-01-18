@@ -162,6 +162,7 @@ interface PropertyDetailsFromBackend {
   sqft: number;
   listDate: string;
   imageUrl: string;
+  address: string;
 }
 
 interface Property {
@@ -174,6 +175,7 @@ interface Property {
   sqft: number;
   tokenPrice: string;
   availableTokens: string;
+  address: string;
 }
 
 export default function Listing() {
@@ -250,6 +252,7 @@ export default function Listing() {
               BigInt(propertyFromContract.totalTokens) -
               BigInt(propertyFromContract.totalInvestedTokens)
             ).toString(),
+            address: property.address
           };
         })
         .filter((property): property is Property => property !== null);

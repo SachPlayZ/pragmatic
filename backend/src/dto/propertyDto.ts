@@ -19,4 +19,5 @@ export class PropertyComparisonDto {
   sqft: number;
   imageUrl: string;
   ammenities: string;
+  address: string;
 }
