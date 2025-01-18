@@ -30,7 +30,7 @@ export default function InvestForm(props: any) {
       .refine((val) => val > 0, {
         message: "Amount must be greater than 0",
       })
-      .refine((val) => val < Number(property.price) / 10 ** 18, {
+      .refine((val) => val <= Number(property.price) / 10 ** 18, {
         message: `Amount must be less than ${
           Number(property.price) / 10 ** 18
         } AVAX`,

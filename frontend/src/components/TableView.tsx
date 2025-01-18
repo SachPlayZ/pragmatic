@@ -85,7 +85,7 @@ const TableView: React.FC<TableViewProps> = ({ properties, comparisonObject }) =
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="text-white/80">Price: <span className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">${property.price}M</span></div>
+                  <div className="text-white/80">Price: <span className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">${property.price}</span></div>
                   <div className="text-white/80">Bedrooms: {property.bedrooms}</div>
                   <div className="text-white/80">Sqft: {property.sqft}</div>
                   <div className="text-white/80">Amenities: {property.ammenities}</div>

@@ -114,7 +114,7 @@ export default function Listing() {
       imageUrl: property.imageUrl,
       name: property.name,
       location: property.location,
-      price: `${property.price} AVAX`,
+      price: `${(Number(property.price)/10**18).toString()} AVAX`,
       bedrooms: property.bedrooms,
       sqft: property.sqft,
       ammenities: property.ammenities

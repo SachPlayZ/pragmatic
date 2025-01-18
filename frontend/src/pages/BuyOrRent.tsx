@@ -54,7 +54,8 @@ export default function Properties() {
     const interval = setInterval(() => {
       refetch()
         .then((result: any) => {
-          console.log("Refetch successful: ", result);
+          console.log("Refetch successful: ", result.data);
+          setPropertyList(result.data);
         })
         .catch((error: any) => {
           console.error("Error during refetch: ", error);
@@ -91,10 +92,10 @@ export default function Properties() {
           </motion.h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {properties.length &&
-              properties.map((property, index) => (
+            {propertyList.length &&
+              propertyList.map((property, index) => (
                 <motion.div
-                  key={property.id}
+                  key={index}
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}

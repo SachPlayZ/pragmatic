@@ -5,35 +5,37 @@ import { useState } from "react";
 import { parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 
-interface Property {
-  id: number;
-  name: string;
-  image: string;
-  type: string;
-  area: number;
-  rentPrice: number;
-  salePrice: number;
-}
+// interface Property {
+//   id: number;
+//   name: string;
+//   image: string;
+//   type: string;
+//   area: number;
+//   rentPrice: number;
+//   salePrice: number;
+// }
 
-interface PropertyCardProps {
-  property: Property;
-}
+// interface PropertyCardProps {
+//   property: Property;
+// }
 
-export default function PropertyCard({ property }: PropertyCardProps) {
+export default function PropertyCard({ property }:any) {
   const { writeContractAsync } = useWriteContract();
   const [transactionStatus, setTransactionStatus] = useState("");
   const [transactionHash, setTransactionHash] = useState("");
 
-  async function handleBuy(id: number) {
+  async function handleBuy(id2: number) {
+    const id = 0
     console.log(`Buying property with id: ${id}`);
     try {
+      console.log(typeof property.resalePrice)
       const tx = await writeContractAsync(
         {
           address: contractAddress,
           abi: contractAbi,
           functionName: "buyProperty",
           args: [id],
-          value: parseEther(property.salePrice.toString()),
+          value: BigInt(property.resalePrice),
         },
         {
           onSuccess(data: any) {
@@ -93,7 +95,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex-1 bg-gradient-to-r from-[#D0FD3E]/10 to-[#9EF01A]/10 border border-[#D0FD3E] text-[#D0FD3E] px-2 py-1 rounded-lg font-medium hover:bg-[#D0FD3E]/20 transition-all text-center text-sm flex items-center justify-center"
+              className="flex-1 bg-gradient-to-r from-[#D0FD3E]/10 to-[#9EF01A]/10 border border-[rgb(208,253,62)] text-[#D0FD3E] px-2 py-1 rounded-lg font-medium hover:bg-[#D0FD3E]/20 transition-all text-center text-sm flex items-center justify-center"
             >
               Rent: {property.rentPrice}{" "}
               <img src="/avax_lime.svg" alt="coin" className="w-4 h-4 ml-1" />
@@ -104,7 +106,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               className="flex-1 bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F] px-2 py-1 rounded-lg font-medium hover:shadow-lg hover:shadow-[#D0FD3E]/20 transition-all text-center text-sm flex items-center justify-center"
               onClick={() => handleBuy(property.id)}
             >
-              Buy: {property.salePrice}{" "}
+              Buy: {Number(property.resalePrice.toString()) / 10**18}{" "}
               <img src="/avax_black.svg" alt="coin" className="w-4 h-4 ml-1" />
             </motion.button>
           </div>
