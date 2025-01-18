@@ -89,7 +89,7 @@ export class AppService {
   }
 
   async getPropertyById(id: number) {
-    return await this.prisma.property.findUnique({
+    return await this.prisma.property.findFirst({
       where: {
         id: id,
       },
@@ -127,13 +127,13 @@ export class AppService {
     });
   }
 
-  // async getPropertiesByIds(ids: number[]) {
-  //   return await this.prisma.property.findMany({
-  //     where: {
-  //       id: {
-  //         in: ids,
-  //       },
-  //     },
-  //   });
-  // }
+  async getPropertiesByIds(ids: number[]) {
+    return await this.prisma.property.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  }
 }

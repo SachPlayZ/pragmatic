@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
 
@@ -52,12 +52,12 @@ export class AppController {
   }
 
   @Delete('property/:id')
-  deleteProperty(id: number) {
+  deleteProperty(@Param('id') id: number) {
     return this.appService.deleteProperty(id);
   }
 
-  @Get('property/:owner')
-  getPropertyByOwner(owner: string) {
+  @Get('propertyv2/:owner')
+  getPropertyByOwner(@Param('owner') owner: string) {
     return this.appService.getPropertyByOwner(owner);
   }
 
