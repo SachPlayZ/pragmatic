@@ -721,6 +721,11 @@ export const contractAbi = [
             name: "finalReturnRate",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256",
+          },
         ],
         internalType: "struct Check.PropertyOnSaleDetails[]",
         name: "",
@@ -1162,4 +1167,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x6576f5690e89F3a097E2BFbe3E4F1cBfbEC41A95";
+export const contractAddress = "0x24667456835Ff94C32904d56Bcf0466f50db0383";
