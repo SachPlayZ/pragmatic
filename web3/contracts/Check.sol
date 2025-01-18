@@ -14,8 +14,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  */
 contract Check is ERC20, Ownable {
     AggregatorV3Interface internal dataFeed;
-    struct Property 
-    {
+    struct Property {
         address owner;
         uint256 totalValue; // AVAX
         uint256 totalTokens; // PROP
@@ -51,6 +50,7 @@ contract Check is ERC20, Ownable {
         uint256 totalValue;
         uint256 resalePrice;
         uint256 finalReturnRate;
+        uint256 id;
     }
 
     struct ListingInfo {
@@ -316,20 +316,39 @@ contract Check is ERC20, Ownable {
         view
         returns (PropertyOnSaleDetails[] memory)
     {
-        PropertyOnSaleDetails[]
-            memory propertiesOnSaleDetails = new PropertyOnSaleDetails[](
-                propertiesOnSale.length
-            );
-        for (uint256 i = 0; i < propertiesOnSale.length; i++) {
-            Property storage prop = property[propertiesOnSale[i]];
-            propertiesOnSaleDetails[i] = PropertyOnSaleDetails({
-                owner: prop.owner,
-                totalValue: prop.totalValue,
-                resalePrice: prop.resalePrice,
-                finalReturnRate: prop.finalReturnRate
-            });
+        uint256 totalProperties = allPropertyIds.length; // Total properties in the system
+        uint256 saleCount = 0;
+
+        // First pass: Count the number of properties for sale
+        for (uint256 i = 0; i < totalProperties; i++) {
+            if (property[i].forSale) {
+                saleCount++;
+            }
         }
-        return propertiesOnSaleDetails;
+
+        // Create a fixed-size array for properties on sale
+        PropertyOnSaleDetails[]
+            memory propertiesOnSaleList = new PropertyOnSaleDetails[](
+                saleCount
+            );
+        uint256 currentIndex = 0;
+
+        // Second pass: Populate the array with properties for sale
+        for (uint256 i = 0; i < totalProperties; i++) {
+            if (property[i].forSale) {
+                Property storage prop = property[i];
+                propertiesOnSaleList[currentIndex] = PropertyOnSaleDetails({
+                    owner: prop.owner,
+                    totalValue: prop.totalValue,
+                    resalePrice: prop.resalePrice,
+                    finalReturnRate: prop.finalReturnRate,
+                    id: i
+                });
+                currentIndex++;
+            }
+        }
+
+        return propertiesOnSaleList;
     }
 
     /**

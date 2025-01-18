@@ -2,33 +2,17 @@ import { contractAbi, contractAddress } from "@/abi";
 import { motion } from "framer-motion";
 import { Home, Maximize2 } from "lucide-react";
 import { useState } from "react";
-import { parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 
-// interface Property {
-//   id: number;
-//   name: string;
-//   image: string;
-//   type: string;
-//   area: number;
-//   rentPrice: number;
-//   salePrice: number;
-// }
-
-// interface PropertyCardProps {
-//   property: Property;
-// }
-
-export default function PropertyCard({ property }:any) {
+export default function PropertyCard({ property }: any) {
   const { writeContractAsync } = useWriteContract();
   const [transactionStatus, setTransactionStatus] = useState("");
   const [transactionHash, setTransactionHash] = useState("");
 
-  async function handleBuy(id2: number) {
-    const id = 0
+  async function handleBuy(id: number) {
     console.log(`Buying property with id: ${id}`);
     try {
-      console.log(typeof property.resalePrice)
+      console.log(typeof property.resalePrice);
       const tx = await writeContractAsync(
         {
           address: contractAddress,
@@ -105,9 +89,39 @@ export default function PropertyCard({ property }:any) {
               whileTap={{ scale: 0.95 }}
               className="flex-1 bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F] px-2 py-1 rounded-lg font-medium hover:shadow-lg hover:shadow-[#D0FD3E]/20 transition-all text-center text-sm flex items-center justify-center"
               onClick={() => handleBuy(property.id)}
+              disabled={transactionStatus === "Transaction submitted!"}
             >
-              Buy: {Number(property.resalePrice.toString()) / 10**18}{" "}
-              <img src="/avax_black.svg" alt="coin" className="w-4 h-4 ml-1" />
+              {transactionStatus === "Transaction submitted!" ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <>
+                  Buy: {Number(property.resalePrice.toString()) / 10 ** 18}{" "}
+                  <img
+                    src="/avax_black.svg"
+                    alt="coin"
+                    className="w-4 h-4 ml-1"
+                  />
+                </>
+              )}
             </motion.button>
           </div>
         </div>

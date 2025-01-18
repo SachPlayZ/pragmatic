@@ -5,45 +5,6 @@ import PropertyCard from "@/components/ProductCard";
 import GetPropOnSale from "@/components/functions/GetPropOnSale";
 import { useEffect, useState } from "react";
 
-const properties = [
-  {
-    id: 1,
-    name: "Luxury Skyline Apartment",
-    image: "/1.jpeg",
-    type: "2BHK",
-    area: 1200,
-    rentPrice: 0.5,
-    salePrice: 150,
-  },
-  {
-    id: 2,
-    name: "Serene Suburban Villa",
-    image: "/2.jpg",
-    type: "3BHK",
-    area: 2000,
-    rentPrice: 0.8,
-    salePrice: 250,
-  },
-  {
-    id: 3,
-    name: "Downtown Loft",
-    image: "/3.jpg",
-    type: "1BHK",
-    area: 800,
-    rentPrice: 0.3,
-    salePrice: 100,
-  },
-  {
-    id: 4,
-    name: "Beachfront Condo",
-    image: "/4.jpeg",
-    type: "2BHK",
-    area: 1500,
-    rentPrice: 0.7,
-    salePrice: 200,
-  },
-];
-
 export default function Properties() {
   const { data, refetch } = GetPropOnSale();
   const [propertyList, setPropertyList] = useState([]);
@@ -54,7 +15,7 @@ export default function Properties() {
     const interval = setInterval(() => {
       refetch()
         .then((result: any) => {
-          console.log("Refetch successful: ", result.data);
+          console.log("Refetch successful: ", result);
           setPropertyList(result.data);
         })
         .catch((error: any) => {
@@ -92,7 +53,7 @@ export default function Properties() {
           </motion.h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {propertyList.length &&
+            {propertyList.length ? (
               propertyList.map((property, index) => (
                 <motion.div
                   key={index}
@@ -102,7 +63,12 @@ export default function Properties() {
                 >
                   <PropertyCard property={property} />
                 </motion.div>
-              ))}
+              ))
+            ) : (
+              <div className="text-white text-center w-full">
+                No properties available
+              </div>
+            )}
           </div>
         </section>
       </main>
