@@ -34,9 +34,21 @@ interface DashboardItem {
   content: React.ReactNode;
 }
 
+interface Property {
+  id: number;
+  owner: string;
+  imageUrl: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+}
+
 export default function Dashboard() {
   const { address } = useAccount();
   const [avaxUsdPrice, setAvaxUsdPrice] = useState<number>(0);
+  const [properties, setProperties] = useState<Property[]>([]);
 
   // Fetch dashboard stats with proper typing
   const { data: dashboardStats, isLoading: loadingStats } = useReadContract({
@@ -57,18 +69,28 @@ export default function Dashboard() {
   // Fetch investments with proper typing
   const { data: investments, isLoading: loadingInvestments } = useReadContract({
     address: contractAddress,
-    abi: contractAbi,
+    abi: contractAbi, 
     functionName: "getWalletInvestments",
     args: [address],
   }) as { data: InvestmentInfo[] | undefined; isLoading: boolean };
 
+  async function getListingsFromBackend(address: string) {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/property/${address}`
+    );
+    const data = await response.json();
+    return data as Property[]; // Assuming the response is an array of properties
+  }
   // Calculate USD values when multiplier (AVAX price) changes
   useEffect(() => {
     if (dashboardStats) {
       // Convert the Chainlink price feed response to USD
       setAvaxUsdPrice(Number(dashboardStats[0]) / 1e8);
+      if (address) {
+        getListingsFromBackend(address).then((data) => setProperties(data));
+      }
     }
-  }, [dashboardStats]);
+  }, [dashboardStats, address]);
 
   // Add this right after the other contract function call hooks
   const { data: propBalance, isLoading: loadingBalance } = useReadContract({
@@ -206,9 +228,7 @@ export default function Dashboard() {
                     key={index}
                     className="flex justify-between items-center bg-white/5 p-3 rounded-lg"
                   >
-                    <span className="text-white">
-                      Property #{listing.propertyId.toString()}
-                    </span>
+                    <span className="text-white">{properties[index].name}</span>
                     <span className="text-[#9EF01A] font-semibold">
                       {formatEther(listing.tokenPrice)} AVAX/token
                     </span>

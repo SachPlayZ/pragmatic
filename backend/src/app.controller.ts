@@ -60,4 +60,9 @@ export class AppController {
   getPropertyByOwner(owner: string) {
     return this.appService.getPropertyByOwner(owner);
   }
+
+  @Get('arrayofids')
+  getPropertiesByIds(@Body() data: { ids: number[] }) {
+    return this.appService.getPropertiesByIds(data.ids);
+  }
 }
