@@ -40,8 +40,8 @@ const formSchema = z.object({
       message: "Price must be a number",
     })
     .transform((val) => Number(val))
-    .refine((val) => val >= 1 && val <= 20, {
-      message: "Price must be between 1 and 20 AVAX",
+    .refine((val) => val > 0 && val <= 20, {
+      message: "Price must be between 0 and 20 AVAX",
     }),
   file: z.instanceof(File).optional(),
   bedrooms: z
@@ -56,6 +56,7 @@ const formSchema = z.object({
       message: "Square feet must be a number",
     })
     .transform((val) => Number(val)),
+  amenities: z.string(),
 });
 
 function ListForm() {
@@ -73,6 +74,7 @@ function ListForm() {
       file: null,
       bedrooms: 0,
       sqft: 0,
+      amenities: "",
     },
   });
 
@@ -132,7 +134,7 @@ function ListForm() {
             bedrooms: data.bedrooms,
             sqft: data.sqft,
             imageUrl: imageData.url,
-            ammenities: "bamboo",
+            ammenities: data.amenities,
           }),
         }
       );
@@ -342,6 +344,26 @@ function ListForm() {
                       <Input
                         type="number"
                         placeholder="Property size in square feet"
+                        {...field}
+                        className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Amenities Input */}
+              <FormField
+                control={form.control}
+                name="amenities"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Amenities</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Swimming pool, gym, etc."
                         {...field}
                         className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
                       />
