@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
+import { PropertyComparisonDto, PropertyDescDto, PropertyDto } from './dto/propertyDto';
 import { PrismaService } from 'lib/common/database/prisma.service';
 import { reverseGeocode } from 'lib/reverseGeocode';
 import {
@@ -65,7 +65,7 @@ export class AppService {
     };
   }
 
-  async getDescription(data: PropertyDto) {
+  async getDescription(data: PropertyDescDto) {
     return await generateDescription(data);
   }
 
