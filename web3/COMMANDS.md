@@ -15,6 +15,6 @@ deploy:
 npx hardhat run ignition/modules/Check.ts --network fuji
 
 verify:
-npx hardhat verify --network fuji 0x08c2c514247c7464cDFDE2FC14C3Eb1ffBc56967
+npx hardhat verify --network fuji 0x3Db4466B64173A3d380453278CF11086128e7D4e
 
-https://testnet.snowtrace.io/address/0x08c2c514247c7464cDFDE2FC14C3Eb1ffBc56967#code --> Check contract
+https://testnet.snowtrace.io/address/0x3Db4466B64173A3d380453278CF11086128e7D4e --> Check contract

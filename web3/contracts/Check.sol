@@ -14,7 +14,8 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  */
 contract Check is ERC20, Ownable {
     AggregatorV3Interface internal dataFeed;
-    struct Property {
+    struct Property 
+    {
         address owner;
         uint256 totalValue; // AVAX
         uint256 totalTokens; // PROP
@@ -116,6 +117,7 @@ contract Check is ERC20, Ownable {
         uint256 amount,
         uint256 returnAmount
     );
+    event PropertyBought(uint256 propertyId, address newOwner, uint256 price);
 
     constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {
         dataFeed = AggregatorV3Interface(
@@ -367,42 +369,73 @@ contract Check is ERC20, Ownable {
     }
 
     /**
+     * @dev Allows a user to buy a property by paying the resale price in AVAX.
+     * Transfers ownership to the buyer and marks the property as not for sale.
+     * @param _propertyId The ID of the property to buy.
+     */
+    function buyProperty(uint256 _propertyId) external payable {
+        Property storage prop = property[_propertyId];
+
+        // Ensure the property exists and is for sale
+        require(prop.forSale, "Property is not for sale");
+        require(prop.resalePrice > 0, "Invalid resale price");
+
+        // Ensure the buyer sends the exact resale price
+        require(msg.value == prop.resalePrice, "Incorrect AVAX amount sent");
+
+        // Transfer funds to the contract (this happens implicitly with msg.value)
+
+        propertyLiquidity[_propertyId] = msg.value;
+
+        // Transfer ownership to the buyer
+        prop.owner = msg.sender;
+
+        // Mark the property as no longer for sale
+        prop.forSale = false;
+
+        // Emit an event for the purchase
+        emit PropertyBought(_propertyId, msg.sender, prop.resalePrice);
+    }
+
+    /**
      * @dev Allows token holders to burn their tokens and receive their share of property value
      * @param _propertyId The ID of the property
      */
     function burnTokensFromProperty(uint256 _propertyId) external {
         Property storage prop = property[_propertyId];
         require(prop.returnRateFinalized, "Return rate not finalized");
-        require(prop.forSale, "Property not for sale");
 
         Investment storage investment = investments[msg.sender][_propertyId];
         require(investment.exists, "No investment found");
         require(investment.tokenAmount > 0, "No tokens to burn");
 
-        // Calculate their share of the resale price based on their tokens
-        uint256 shareOfResale = (prop.resalePrice * investment.tokenAmount) /
-            prop.totalTokens;
+        // Calculate original investment amount plus return
+        uint256 originalInvestment = investment.investmentAmount;
+        uint256 returnAmount = (originalInvestment * prop.finalReturnRate) /
+            100;
+        uint256 totalDue = originalInvestment + returnAmount;
+
         require(
-            propertyLiquidity[_propertyId] >= shareOfResale,
+            propertyLiquidity[_propertyId] >= totalDue,
             "Insufficient liquidity"
         );
 
         // Store token amount to burn
         uint256 tokensToBurn = investment.tokenAmount;
 
-        // Clear the investment record
-        investment.tokenAmount = 0;
-        investment.exists = false;
+        // Clear investment record
+        delete investments[msg.sender][_propertyId];
 
         // Update property liquidity
-        propertyLiquidity[_propertyId] -= shareOfResale;
+        propertyLiquidity[_propertyId] -= totalDue;
 
-        // Burn tokens and transfer AVAX
+        // Burn tokens and transfer ETH
         _burn(msg.sender, tokensToBurn);
-        (bool success, ) = payable(msg.sender).call{value: shareOfResale}("");
-        require(success, "AVAX transfer failed");
 
-        emit TokensBurned(msg.sender, _propertyId, tokensToBurn, shareOfResale);
+        (bool success, ) = payable(msg.sender).call{value: totalDue}("");
+        require(success, "ETH transfer failed");
+
+        emit TokensBurned(msg.sender, _propertyId, tokensToBurn, totalDue);
     }
 
     function getChainlinkDataFeedLatestAnswer() public view returns (int) {
