@@ -17,6 +17,7 @@ interface PropertyFromContract {
   finalReturnRate: string;
   totalInvestedTokens: string;
   returnRateFinalized: boolean;
+  ammenities: string;
 }
 
 interface PropsForCompare {
@@ -42,6 +43,7 @@ interface PropertyDetailsFromBackend {
   listDate: string;
   imageUrl: string;
   address: string;
+  ammenities: string;
 }
 
 interface Property {
@@ -55,6 +57,7 @@ interface Property {
   tokenPrice: string;
   availableTokens: string;
   address: string;
+  ammenities: string;
 }
 
 interface ComparisonObject {
@@ -210,6 +213,7 @@ export default function Listing() {
               BigInt(propertyFromContract.totalInvestedTokens)
             ).toString(),
             address: property.address,
+            ammenities: property.ammenities
           };
         })
         .filter((property): property is Property => property !== null);

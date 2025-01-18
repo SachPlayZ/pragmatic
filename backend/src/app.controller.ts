@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { PropertyComparisonDto, PropertyDto } from './dto/propertyDto';
+import { PropertyComparisonDto, PropertyDescDto, PropertyDto } from './dto/propertyDto';
 
 interface Context {
   role: string;
@@ -32,7 +32,7 @@ export class AppController {
   }
 
   @Post('getDescription')
-  getDescription(@Body() data: PropertyDto) {
+  getDescription(@Body() data: PropertyDescDto) {
     return this.appService.getDescription(data);
   }
 

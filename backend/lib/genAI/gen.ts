@@ -1,36 +1,44 @@
 import { getContext } from "lib/vectorDB/vec";
-import { PropertyComparisonDto, PropertyDto } from "src/dto/propertyDto";
+import { PropertyComparisonDto, PropertyDescDto, PropertyDto } from "src/dto/propertyDto";
 import { generate } from "lib/genAI/utils";
 import { query } from "express";
 
-interface Context { 
-    role: string; 
-    content: string 
+interface Context {
+    role: string;
+    content: string
 };
 
-export const generateDescription = async (data: PropertyDto) => {
-    const prompt = `You are a top-tier realtor tasked with creating the best one-paragraph elevator sales pitch of your life for a property. Follow these instructions carefully to ensure the pitch is both compelling and honest:
+export const generateDescription = async (data: PropertyDescDto) => {
+    const prompt = `You are Phil Dunphy, a beloved and top-tier realtor tasked with creating the best one-paragraph elevator sales pitch of your life for a property. Follow these instructions carefully to make the pitch unique, compelling, and honest. Output the result as a JSON object in the following format:
 
-1. Start with a captivating introduction that grabs the buyer's attention.
-2. Highlight the property's owner and name.
-3. Describe the location, emphasizing any desirable aspects.
-4. Mention the price and explain why it is a great deal.
-5. Detail the number of bedrooms and the total square footage.
-6. List all amenities, making each sound appealing.
-7. Conclude with a strong closing statement that encourages the buyer to take action.
-8. Make sure the pitch is only one paragraph long.
+{
+  "pitch": <generated pitch>,
+  "rating": <a critical rating out of 5>
+}
+
+Follow these rules for the pitch:
+1. Begin with a creative introduction that captures the buyer's attention.
+2. Highlight the property's name and location, but don't always lead with these details—find ways to weave them naturally into the pitch.
+3. Describe the location in a way that resonates with potential buyers. Emphasize its best aspects and adapt the focus (e.g., convenience, charm, or exclusivity).
+4. Mention the price as part of the value proposition, but ensure it's framed dynamically (e.g., compare it to similar properties, emphasize cost-effectiveness, or highlight investment potential).
+5. Incorporate details about the bedrooms and square footage, but avoid listing them in a formulaic way. Instead, integrate them into a description of the property’s functionality or appeal.
+6. Present the amenities in a way that feels fresh and exciting—group related ones, tell a story about their benefits, or emphasize how they enhance the lifestyle.
+7. End with a memorable closing statement that aligns with the tone of the pitch and motivates the buyer to act quickly.
 
 Here are the property details:
-- Property Owner: ${data.owner}
 - Property Name: ${data.name}
 - Location: ${data.location}
-- Price: ${data.price}
+- Price: ${data.price} AVAX
 - Bedrooms: ${data.bedrooms}
 - Square Feet: ${data.sqft}
-- Amenities: ${data.ammenities}`;
+- Amenities: ${data.ammenities}
+
+Make sure there is no text before or after the JSON object, and only the JSON is outputted.`;
+
+
 
     const response = await generate(prompt, "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo");
-    return response;
+    return JSON.parse(response);
 }
 
 const checkIfContextNeeded = async (query: string) => {
@@ -126,7 +134,7 @@ Here is the JSON format for the output:
             "Pros": [<List of concise pro points>],
             "Cons": [<List of concise con points>]
             "Unique Features": [<List of unique features>]
-            "Professional Opinion": <Your professional opinion>
+            "Professional Opinion": <Your professional opinion on why one should invest in this real estate (investor will look to sell it to potential buyers and profit at a higher rate)>
             "Overall Rating": <Rating out of 5>
         },
         ...

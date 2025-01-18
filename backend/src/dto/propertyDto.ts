@@ -9,6 +9,15 @@ export class PropertyDto {
   ammenities: string;
 }
 
+export class PropertyDescDto {
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: string;
+  sqft: number;
+  ammenities: string;
+}
+
 export class PropertyComparisonDto {
   id: number;
   owner: string;

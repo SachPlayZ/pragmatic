@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { Bookmark, Building2, Home, Maximize2, Plus } from "lucide-react";
+import { Building2, Home, Maximize2, Plus, Quote } from 'lucide-react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "./ui/dialog";
-import { DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import InvestForm from "./InvestForm";
 import { useState } from "react";
 
@@ -11,6 +11,7 @@ interface ListCardProps {
   property: any;
   addToComparison: (property: any) => void;
 }
+
 interface PropsForCompare {
   id: number;
   imageUrl: string;
@@ -23,9 +24,18 @@ interface PropsForCompare {
   availableTokens: string;
 }
 
+interface QuoteInfo {
+  pitch: string;
+  rating: number;
+  realtorName: string;
+}
+
 export default function ListCard({ property, addToComparison }: ListCardProps) {
   const [showInvestButton, setShowInvestButton] = useState(true);
-  // console.log("Property", property);
+  const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+
+  console.log("Property", property);
 
   const addCompare = (prop: any) => {
     const propy: PropsForCompare = {
@@ -33,6 +43,68 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
       location: prop.address,
     };
     addToComparison(propy);
+  };
+
+  const getQuote = async () => {
+    setIsQuoteLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getDescription`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            name: property.name,
+            location: property.address,
+            price: (Number(property.price.toLocaleString()) / 10 ** 18).toString(),
+            bedrooms: property.bedrooms,
+            sqft: property.sqft,
+            ammenities: property.ammenities
+           }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch quote');
+      }
+      const data = await response.json();
+      console.log("Data")
+      console.log(data)
+      setQuoteInfo({
+        pitch: data.pitch,
+        rating: data.rating,
+        realtorName: "Phil \"AI\" Dunphy" // Placeholder name as requested
+      });
+    } catch (error) {
+      console.error("Error fetching quote:", error);
+      setQuoteInfo({
+        pitch: "We apologize, but we couldn't fetch a quote at this time.",
+        rating: 0,
+        realtorName: "N/A"
+      });
+    } finally {
+      setIsQuoteLoading(false);
+    }
+  };
+
+  const renderRatingStars = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <motion.svg
+            key={star}
+            className={`w-6 h-6 ${star <= rating ? 'text-yellow-400' : 'text-gray-400'}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            initial={{ scale: 1 }}
+            animate={{ scale: star <= rating ? [1, 1.2, 1] : 1 }}
+            transition={{ duration: 0.3, delay: star * 0.1 }}
+          >
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </motion.svg>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -44,7 +116,7 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
       whileHover={{ scale: 1.05 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
-      <Card className="rounded-xl overflow-hidden border border-gray-700 bg-gray-900 text-white">
+      <Card className="rounded-xl border-none overflow-hidden bg-gray-900 text-white">
         {/* Image */}
         <div className="lg:aspect-[2] aspect-[16/9] w-full overflow-hidden">
           <img
@@ -70,7 +142,6 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
           {/* Details */}
           <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-400">
             <span className="flex items-center">
-              {" "}
               <Home className="w-4 h-4 mr-2" />
               {property.bedrooms} BHK
             </span>
@@ -80,7 +151,11 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
               {property.sqft} sqft
             </span>
           </div>
-
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-400">
+            <span className="flex items-center">
+              {property.ammenities}
+            </span>
+          </div>
           {/* Token Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-400">
             <div className="flex items-center">
@@ -134,22 +209,57 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
           <Button
             variant="outline"
             size="icon"
-            className={`${
-              property.availableTokens === 0
+            className={`${property.availableTokens === 0
                 ? "text-gray-600 "
                 : "text-lime-400 border-lime-400 bg-gray-900 hover:text-lime-500 hover:bg-gray-800"
-            }`}
+              }`}
             disabled={property.availableTokens === 0}
           >
             <Building2 className="h-4 w-4" />
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            className="text-lime-400 border-lime-400 hover:text-lime-400 bg-gray-900 hover:bg-gray-800"
-          >
-            <Bookmark className="h-4 w-4" />
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                className="text-lime-400 border-lime-400 hover:text-lime-400 bg-gray-900 hover:bg-gray-800"
+                onClick={getQuote}
+              >
+                <Quote className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="min-w-[900px] bg-gray-900/95 backdrop-blur-sm">
+              {isQuoteLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-lime-400"></div>
+                </div>
+              ) : quoteInfo ? (
+                <div className="p-6">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <Avatar>
+                      <AvatarImage src="/phil.png" alt="Phil Dunphy" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">{quoteInfo.realtorName}</h4>
+                      <p className="text-sm text-gray-400">Trusted Realtor</p>
+                    </div>
+                  </div>
+                  <blockquote className="text-white italic mb-4">
+                    {quoteInfo.pitch}
+                  </blockquote>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-white">Rating:</span>
+                    {renderRatingStars(quoteInfo.rating)}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-gray-400">
+                  No quote available at this time.
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
           <Button
             size="icon"
             variant="outline"
@@ -163,3 +273,4 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
     </motion.div>
   );
 }
+
