@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bookmark, Building2, Home, Maximize2 } from "lucide-react";
+import { Bookmark, Building2, Home, Maximize2, Plus } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "./ui/dialog";
@@ -7,13 +7,33 @@ import { DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
 import InvestForm from "./InvestForm";
 import { useState } from "react";
 
-export default function ListCard(props: any) {
-  const { property } = props;
-  console.log(property);
+interface ListCardProps {
+  property: any;
+  addToComparison: (property: any) => void;
+}
+interface PropsForCompare {
+  id: number;
+  imageUrl: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+  tokenPrice: string;
+  availableTokens: string;
+}
 
-  // const [lat, lon] = property.location.split(",").map(Number);
+export default function ListCard({ property, addToComparison }: ListCardProps) {
   const [showInvestButton, setShowInvestButton] = useState(true);
-  console.log("Property", property)
+  console.log("Property", property);
+
+  const addCompare = (prop: any) => {
+    const propy: PropsForCompare = {
+      ...prop,
+      location: prop.address,
+    };
+    addToComparison(propy);
+  };
 
   return (
     <motion.div
@@ -28,7 +48,7 @@ export default function ListCard(props: any) {
         {/* Image */}
         <div className="lg:aspect-[2] aspect-[16/9] w-full overflow-hidden">
           <img
-            src={property.imageUrl}
+            src={property.imageUrl || "/placeholder.svg"}
             alt={property.name}
             className="h-full w-full object-cover object-center"
           />
@@ -40,11 +60,7 @@ export default function ListCard(props: any) {
           <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <h3 className="text-lg font-semibold">{property.name}</h3>
-              <p className="text-sm text-gray-400">
-                {/* {lat.toFixed(2)}°, {lon.toFixed(2)}° */}
-                {/* <br /> */}
-                {property.address}
-              </p>
+              <p className="text-sm text-gray-400">{property.address}</p>
             </div>
             <span className="mt-2 sm:mt-0 text-lg font-bold text-lime-400">
               {Number(property.price.toLocaleString()) / 10 ** 18}$AVAX
@@ -133,6 +149,14 @@ export default function ListCard(props: any) {
             className="text-lime-400 border-lime-400 hover:text-lime-400 bg-gray-900 hover:bg-gray-800"
           >
             <Bookmark className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="text-lime-400 border-lime-400 hover:text-lime-400 bg-gray-900 hover:bg-gray-800"
+            onClick={() => addCompare(property)}
+          >
+            <Plus className="h-4 w-4" />
           </Button>
         </CardFooter>
       </Card>

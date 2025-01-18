@@ -4,140 +4,130 @@ import ListForm from "@/components/ListForm";
 import { useEffect, useState } from "react";
 import { GetAllProperties } from "@/components/functions/GetAllProperties";
 import CoolOverlayModal from "@/components/CoolOverlayModal";
-import { GitCompareArrows } from 'lucide-react';
+import { GitCompareArrows } from "lucide-react";
 
-const props = [
-  {
-    "id": 1,
-    "owner": "248428",
-    "name": "Crazy apartments",
-    "location": "Manhattan",
-    "price": "2",
-    "bedrooms": 3,
-    "sqft": 1491,
-    "imageUrl": "https://picsum.photos/seed/apartment1/800/600",
-    "ammenities": "Pool, Movie Theatre, Community Hall, Orgy Hall"
-  },
-  {
-    "id": 2,
-    "owner": "83929",
-    "name": "Bro House",
-    "location": "Beverly Hills",
-    "price": "3",
-    "bedrooms": 3,
-    "sqft": 1832,
-    "imageUrl": "https://picsum.photos/seed/apartment2/800/600",
-    "ammenities": "Pool, Garden, Helipad"
-  },
-  {
-    "id": 3,
-    "owner": "123456",
-    "name": "Eco Haven",
-    "location": "Portland",
-    "price": "1.5",
-    "bedrooms": 2,
-    "sqft": 1200,
-    "imageUrl": "https://picsum.photos/seed/apartment3/800/600",
-    "ammenities": "Solar Panels, Organic Garden, Bike Storage"
-  },
-  {
-    "id": 4,
-    "owner": "789012",
-    "name": "Skyline Penthouse",
-    "location": "Chicago",
-    "price": "4",
-    "bedrooms": 4,
-    "sqft": 2500,
-    "imageUrl": "https://picsum.photos/seed/apartment4/800/600",
-    "ammenities": "Private Elevator, Rooftop Terrace, Smart Home System"
-  }
-]
+// const props = [
+//   {
+//     id: 1,
+//     owner: "248428",
+//     name: "Crazy apartments",
+//     location: "Manhattan",
+//     price: "2",
+//     bedrooms: 3,
+//     sqft: 1491,
+//     imageUrl: "https://picsum.photos/seed/apartment1/800/600",
+//     ammenities: "Pool, Movie Theatre, Community Hall, Orgy Hall",
+//   },
+//   {
+//     id: 2,
+//     owner: "83929",
+//     name: "Bro House",
+//     location: "Beverly Hills",
+//     price: "3",
+//     bedrooms: 3,
+//     sqft: 1832,
+//     imageUrl: "https://picsum.photos/seed/apartment2/800/600",
+//     ammenities: "Pool, Garden, Helipad",
+//   },
+//   {
+//     id: 3,
+//     owner: "123456",
+//     name: "Eco Haven",
+//     location: "Portland",
+//     price: "1.5",
+//     bedrooms: 2,
+//     sqft: 1200,
+//     imageUrl: "https://picsum.photos/seed/apartment3/800/600",
+//     ammenities: "Solar Panels, Organic Garden, Bike Storage",
+//   },
+//   {
+//     id: 4,
+//     owner: "789012",
+//     name: "Skyline Penthouse",
+//     location: "Chicago",
+//     price: "4",
+//     bedrooms: 4,
+//     sqft: 2500,
+//     imageUrl: "https://picsum.photos/seed/apartment4/800/600",
+//     ammenities: "Private Elevator, Rooftop Terrace, Smart Home System",
+//   },
+// ];
 
 const comparisonObject = {
   "Best Property": 4,
   "Worst Property": 1,
-  "Comparison": [
+  Comparison: [
     {
-      "id": 1,
-      "Pros": [
+      id: 1,
+      Pros: [
         "Affordable price",
         "Community-focused amenities",
-        "Variety of social spaces"
+        "Variety of social spaces",
       ],
-      "Cons": [
+      Cons: [
         "Smaller square footage",
         "Less desirable location for some",
-        "Questionable 'Orgy Hall' amenity"
+        "Questionable 'Orgy Hall' amenity",
       ],
-      "Unique Features": [
-        "Orgy Hall",
-        "Movie Theatre",
-        "Community Hall"
-      ],
-      "Professional Opinion": "While this property has some unique social spaces, its smaller size and questionable amenities may not appeal to all buyers. The location in Manhattan may also be a drawback for those who prefer a more suburban lifestyle.",
-      "Overall Rating": 3
+      "Unique Features": ["Orgy Hall", "Movie Theatre", "Community Hall"],
+      "Professional Opinion":
+        "While this property has some unique social spaces, its smaller size and questionable amenities may not appeal to all buyers. The location in Manhattan may also be a drawback for those who prefer a more suburban lifestyle.",
+      "Overall Rating": 3,
     },
     {
-      "id": 2,
-      "Pros": [
+      id: 2,
+      Pros: [
         "Larger square footage",
         "More desirable location in Beverly Hills",
-        "Unique helipad amenity"
+        "Unique helipad amenity",
       ],
-      "Cons": [
-        "Higher price point",
-        "Fewer community-focused amenities"
-      ],
-      "Unique Features": [
-        "Helipad",
-        "Garden"
-      ],
-      "Professional Opinion": "This property offers a more luxurious and spacious living experience, with a unique helipad amenity that will appeal to buyers who value convenience and exclusivity. The location in Beverly Hills is also highly desirable.",
-      "Overall Rating": 4
+      Cons: ["Higher price point", "Fewer community-focused amenities"],
+      "Unique Features": ["Helipad", "Garden"],
+      "Professional Opinion":
+        "This property offers a more luxurious and spacious living experience, with a unique helipad amenity that will appeal to buyers who value convenience and exclusivity. The location in Beverly Hills is also highly desirable.",
+      "Overall Rating": 4,
     },
     {
-      "id": 3,
-      "Pros": [
+      id: 3,
+      Pros: [
         "Eco-friendly features",
         "Affordable price point",
-        "Desirable location for nature lovers"
+        "Desirable location for nature lovers",
       ],
-      "Cons": [
+      Cons: [
         "Smaller square footage",
         "Fewer bedrooms",
-        "May not appeal to those seeking luxury amenities"
+        "May not appeal to those seeking luxury amenities",
       ],
-      "Unique Features": [
-        "Solar Panels",
-        "Organic Garden",
-        "Bike Storage"
-      ],
-      "Professional Opinion": "This property is perfect for environmentally conscious buyers who prioritize sustainability. While it may be smaller, its eco-friendly features and location in Portland make it an attractive option for a specific market segment.",
-      "Overall Rating": 4
+      "Unique Features": ["Solar Panels", "Organic Garden", "Bike Storage"],
+      "Professional Opinion":
+        "This property is perfect for environmentally conscious buyers who prioritize sustainability. While it may be smaller, its eco-friendly features and location in Portland make it an attractive option for a specific market segment.",
+      "Overall Rating": 4,
     },
     {
-      "id": 4,
-      "Pros": [
+      id: 4,
+      Pros: [
         "Spectacular views",
         "Luxurious amenities",
         "Large square footage",
-        "Prime location in Chicago"
+        "Prime location in Chicago",
       ],
-      "Cons": [
+      Cons: [
         "Highest price point",
         "May be too large for some buyers",
-        "High maintenance costs"
+        "High maintenance costs",
       ],
       "Unique Features": [
         "Private Elevator",
         "Rooftop Terrace",
-        "Smart Home System"
+        "Smart Home System",
       ],
-      "Professional Opinion": "This penthouse offers the epitome of luxury living in Chicago. With its breathtaking views, high-end amenities, and smart home features, it's ideal for those seeking a premium urban lifestyle. However, the high price point and maintenance costs may limit its appeal to a select group of buyers.",
-      "Overall Rating": 5
-    }
-  ]
-}
+      "Professional Opinion":
+        "This penthouse offers the epitome of luxury living in Chicago. With its breathtaking views, high-end amenities, and smart home features, it's ideal for those seeking a premium urban lifestyle. However, the high price point and maintenance costs may limit its appeal to a select group of buyers.",
+      "Overall Rating": 5,
+    },
+  ],
+};
 
 interface PropertyFromContract {
   owner: string;
@@ -150,6 +140,18 @@ interface PropertyFromContract {
   finalReturnRate: string;
   totalInvestedTokens: string;
   returnRateFinalized: boolean;
+}
+
+interface PropsForCompare {
+  id: number;
+  owner: string;
+  imageUrl: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+  ammenities: string;
 }
 
 interface PropertyDetailsFromBackend {
@@ -183,11 +185,18 @@ export default function Listing() {
   const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>(
     []
   );
+  const [props, setProps] = useState<PropsForCompare[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // New state for combined property data
   const [combinedProperties, setCombinedProperties] = useState<Property[]>([]);
 
   const { data: propertyList, refetch } = GetAllProperties();
+
+  const addToComparison = (property: PropsForCompare) => {
+    if (!props.some((p) => p.id === property.id)) {
+      setProps([...props, property]);
+    }
+  };
 
   useEffect(() => {
     // Fetch properties from backend
@@ -252,7 +261,7 @@ export default function Listing() {
               BigInt(propertyFromContract.totalTokens) -
               BigInt(propertyFromContract.totalInvestedTokens)
             ).toString(),
-            address: property.address
+            address: property.address,
           };
         })
         .filter((property): property is Property => property !== null);
@@ -292,7 +301,11 @@ export default function Listing() {
 
           <div className="grid lg:w-[75%] gap-6 lg:px-6 md:grid-cols-2 lg:grid-cols-2">
             {combinedProperties.map((property) => (
-              <ListCard property={property} key={property.id} />
+              <ListCard
+                property={property}
+                key={property.id}
+                addToComparison={addToComparison}
+              />
             ))}
           </div>
         </section>
@@ -303,12 +316,14 @@ export default function Listing() {
       >
         <GitCompareArrows className="h-6 w-6" />
       </button>
-      <CoolOverlayModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        properties={props}
-        comparisonObject={comparisonObject}
-      />
+      {props.length > 1 && (
+        <CoolOverlayModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          properties={props}
+          comparisonObject={comparisonObject}
+        />
+      )}
     </div>
   );
 }
