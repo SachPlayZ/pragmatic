@@ -39,7 +39,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isBest, isWorst, 
         <h3 className="text-xl font-semibold mb-2 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">{property.name}</h3>
         <p className="text-white/80 mb-2">{property.location}</p>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-lg font-bold bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">${property.price}M</span>
+          <span className="text-lg font-bold bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">{Number(property.price.split(" ")[0]) / 10**18} $AVAX</span>
           <span className="text-white/80">{property.bedrooms} beds | {property.sqft} sqft</span>
         </div>
         <p className="text-sm text-white/60">{property.ammenities}</p>

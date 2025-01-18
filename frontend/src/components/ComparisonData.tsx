@@ -20,6 +20,7 @@ interface ComparisonDataProps {
 }
 
 const ComparisonData: React.FC<ComparisonDataProps> = ({ comparisonObject, activeProperty }) => {
+  // console.log
   const activeComparison = comparisonObject.Comparison.find(item => item.id === activeProperty)
 
   if (!activeComparison) return null
