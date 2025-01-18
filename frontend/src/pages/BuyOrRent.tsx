@@ -91,16 +91,17 @@ export default function Properties() {
           </motion.h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {properties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <PropertyCard property={property} />
-              </motion.div>
-            ))}
+            {properties.length &&
+              properties.map((property, index) => (
+                <motion.div
+                  key={property.id}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <PropertyCard property={property} />
+                </motion.div>
+              ))}
           </div>
         </section>
       </main>
