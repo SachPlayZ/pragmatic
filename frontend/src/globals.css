@@ -140,3 +140,35 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+.slick-dots {
+  bottom: 16px;
+}
+
+.slick-dots li button:before {
+  color: #d0fd3e;
+  opacity: 0.5;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #d0fd3e;
+  opacity: 1;
+}
+
+.slick-prev,
+.slick-next {
+  z-index: 1;
+}
+
+.slick-prev {
+  left: 16px;
+}
+
+.slick-next {
+  right: 16px;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: #d0fd3e;
+}

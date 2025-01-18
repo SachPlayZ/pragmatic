@@ -127,13 +127,13 @@ export class AppService {
     });
   }
 
-  async getPropertiesByIds(ids: number[]) {
-    return await this.prisma.property.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
-  }
+  // async getPropertiesByIds(ids: number[]) {
+  //   return await this.prisma.property.findMany({
+  //     where: {
+  //       id: {
+  //         in: ids,
+  //       },
+  //     },
+  //   });
+  // }
 }

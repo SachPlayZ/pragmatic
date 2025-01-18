@@ -52,6 +52,7 @@ export default function Dashboard() {
   const [investmentProperties, setInvestmentProperties] = useState<Property[]>(
     []
   );
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
 
   // Fetch dashboard stats with proper typing
   const { data: dashboardStats, isLoading: loadingStats } = useReadContract({
@@ -60,20 +61,6 @@ export default function Dashboard() {
     functionName: "getDashboardStats",
     args: [address],
   }) as { data: DashboardStats | undefined; isLoading: boolean };
-  async function getPropertiesByIds(ids: number[]) {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/arrayofids`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ids }),
-      }
-    );
-    const data = await response.json();
-    return data as Property[]; // Assuming the response is an array of properties
-  }
 
   // Fetch wallet listings with proper typing
   const { data: listings, isLoading: loadingListings } = useReadContract({
@@ -91,42 +78,79 @@ export default function Dashboard() {
     args: [address],
   }) as { data: InvestmentInfo[] | undefined; isLoading: boolean };
 
-  async function getListingsFromBackend(address: string) {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/property/${address}`
-    );
-    const data = await response.json();
-    return data as Property[]; // Assuming the response is an array of properties
-  }
-  // Calculate USD values when multiplier (AVAX price) changes
-  useEffect(() => {
-    if (dashboardStats) {
-      // Convert the Chainlink price feed response to USD
-      setAvaxUsdPrice(Number(dashboardStats[0]) / 1e8);
-      if (address) {
-        getListingsFromBackend(address).then((data) => setProperties(data));
-      }
-    }
-  }, [dashboardStats, address]);
-  useEffect(() => {
-    if (investments) {
-      const propertyIds = investments.map((investment) =>
-        Number(investment.propertyId)
-      );
-      getPropertiesByIds(propertyIds).then((data) =>
-        setInvestmentProperties(data)
-      );
-    }
-  }, [investments]);
-  // Add this right after the other contract function call hooks
+  // Fetch balance
   const { data: propBalance, isLoading: loadingBalance } = useReadContract({
     address: contractAddress,
     abi: contractAbi,
-    functionName: "balanceOf", // Assuming your contract has this ERC20 function
+    functionName: "balanceOf",
     args: [address],
   }) as { data: bigint | undefined; isLoading: boolean };
 
-  // Process the dashboard items with real data
+  async function getListingsFromBackend(address: string) {
+    try {
+      setIsLoadingProperties(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch properties");
+      }
+      const data = await response.json();
+      const filteredData = data.filter(
+        (prop: Property) => prop.owner === address
+      );
+      console.log("Filtered data", filteredData);
+      return filteredData as Property[];
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      return [];
+    } finally {
+      setIsLoadingProperties(false);
+    }
+  }
+
+  async function getPropertiesByIds(ids: number[]) {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch properties by IDs");
+      }
+      const data = await response.json();
+      const filteredData = data.filter((prop: Property) =>
+        ids.includes(prop.id)
+      );
+      console.log("Filtered data", filteredData);
+      return filteredData as Property[];
+    } catch (error) {
+      console.error("Error fetching properties by IDs:", error);
+      return [];
+    }
+  }
+
+  useEffect(() => {
+    if (dashboardStats) {
+      console.log("Dashboard stats", dashboardStats);
+      setAvaxUsdPrice(Number(dashboardStats[0]) / 1e8);
+      if (address) {
+        getListingsFromBackend(address).then(setProperties);
+        console.log("Properties", properties);
+      }
+    }
+  }, [dashboardStats, address]);
+
+  useEffect(() => {
+    if (investments) {
+      console.log("Investments", investments);
+      const propertyIds = investments.map(
+        (investment) => Number(investment.propertyId) + 1
+      );
+      getPropertiesByIds(propertyIds).then(setInvestmentProperties);
+      console.log("Investment properties", investmentProperties);
+    }
+  }, [investments]);
+
   const processedDashboardItems: DashboardItem[] = [
     {
       title: "My Statistics",
@@ -157,11 +181,14 @@ export default function Dashboard() {
           </div>
           <div className="space-y-2">
             <p className="text-white/70">Total AVAX Spent</p>
-            <p className="text-3xl font-bold text-[#D0FD3E]">
-              {loadingStats
-                ? "Loading..."
-                : `${formatEther(dashboardStats?.[2] ?? 0n)} AVAX`}
-            </p>
+            <div className="flex gap-2">
+              <p className="text-3xl font-bold text-[#D0FD3E]">
+                {loadingStats
+                  ? "Loading..."
+                  : `${formatEther(dashboardStats?.[2] ?? 0n)}`}
+              </p>
+              <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
+            </div>
           </div>
           <div className="space-y-2">
             <p className="text-white/70">AVAX Price</p>
@@ -185,17 +212,6 @@ export default function Dashboard() {
             </p>
             <p className="text-white/70">PROP Tokens</p>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-white/70">Value in USD</span>
-            <span className="text-xl font-semibold text-white">
-              $
-              {loadingBalance
-                ? "Loading..."
-                : (
-                    Number(formatEther(propBalance ?? 0n)) * avaxUsdPrice
-                  ).toLocaleString()}
-            </span>
-          </div>
         </div>
       ),
     },
@@ -210,12 +226,16 @@ export default function Dashboard() {
             <ul className="space-y-4">
               {loadingInvestments ? (
                 <li className="text-white">Loading investments...</li>
-              ) : (
-                investments?.map((investment, index) => (
-                  <li key={index} className="bg-white/5 p-3 rounded-lg">
+              ) : investments?.length ? (
+                investments.map((investment, index) => (
+                  <li
+                    key={`${investment.propertyId}-${index}`}
+                    className="bg-white/5 p-3 rounded-lg"
+                  >
                     <div className="flex justify-between items-center">
                       <span className="text-white">
-                        {investmentProperties?.[index]?.name ?? "Loading..."}
+                        {investmentProperties[index]?.name ??
+                          `Property #${investment.propertyId}`}
                       </span>
                       <span className="text-[#9EF01A] font-semibold">
                         {formatEther(investment.investmentAmount)} AVAX
@@ -224,13 +244,13 @@ export default function Dashboard() {
                     <div className="text-sm text-white/70 mt-1">
                       Return Rate:{" "}
                       {investment.actualRate > 0n
-                        ? `${Number(investment.actualRate) / 100}%`
-                        : `${
-                            Number(investment.proposedRate) / 100
-                          }% (Proposed)`}
+                        ? `${Number(investment.actualRate)}%`
+                        : `${Number(investment.proposedRate)}% (Proposed)`}
                     </div>
                   </li>
                 ))
+              ) : (
+                <li className="text-white/70">No investments found</li>
               )}
             </ul>
           </ScrollArea>
@@ -246,20 +266,27 @@ export default function Dashboard() {
         <div className="flex flex-col h-full">
           <ScrollArea className="flex-grow pr-4">
             <ul className="space-y-4">
-              {loadingListings ? (
+              {loadingListings || isLoadingProperties ? (
                 <li className="text-white">Loading listings...</li>
+              ) : listings && listings.length > 0 ? (
+                listings.map((listing, index) => {
+                  const property = properties[index];
+                  return (
+                    <li
+                      key={`${listing.propertyId}-${index}`}
+                      className="flex justify-between items-center bg-white/5 p-3 rounded-lg"
+                    >
+                      <span className="text-white">
+                        {property?.name || `Property #${listing.propertyId}`}
+                      </span>
+                      <span className="text-[#9EF01A] font-semibold">
+                        {formatEther(BigInt(property.price))} AVAX
+                      </span>
+                    </li>
+                  );
+                })
               ) : (
-                listings?.map((listing, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center bg-white/5 p-3 rounded-lg"
-                  >
-                    <span className="text-white">{properties[index].name}</span>
-                    <span className="text-[#9EF01A] font-semibold">
-                      {formatEther(listing.tokenPrice)} AVAX/token
-                    </span>
-                  </li>
-                ))
+                <li className="text-white/70">No listings found</li>
               )}
             </ul>
           </ScrollArea>
