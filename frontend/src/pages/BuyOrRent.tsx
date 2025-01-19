@@ -14,6 +14,7 @@ interface Property {
   price: string;
   bedrooms: number;
   sqft: number;
+  ammenities: string;
 }
 
 interface PropertyOnSale {
@@ -28,9 +29,12 @@ export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [propertyIdsOnSale, setPropertyIdsOnSale] = useState<number[]>([]);
+  const [propsy, setPropsy] = useState<PropertyOnSale[]>([]);
 
   async function getProperties() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/property`);
+    const res = await fetch(
+      `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
+    );
     const data = await res.json();
     return data as Property[];
   }
@@ -41,6 +45,7 @@ export default function Properties() {
     getProperties()
       .then((data) => {
         setProperties(data);
+        console.log("Properties are: ", data);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -55,12 +60,16 @@ export default function Properties() {
     const interval = setInterval(() => {
       refetch()
         .then((result: any) => {
-          console.log("Refetch successful: ", result);
+          console.log("Refetch successful: ", result.data);
           if (result.data) {
+            setPropsy(result.data.map((property: PropertyOnSale) => property));
             const idsOnSale = result.data.map(
               (property: PropertyOnSale) => property.id
             );
+
+            console.log("Propsy: ", propsy);
             setPropertyIdsOnSale(idsOnSale);
+            console.log("Property IDs on sale: ", idsOnSale);
           }
         })
         .catch((error: any) => {
@@ -75,9 +84,15 @@ export default function Properties() {
   }, [refetch]);
 
   // Filter the properties based on the propertyIdsOnSale
-  const filteredProperties = properties.filter((property) =>
-    propertyIdsOnSale.includes(property.id)
+  const filteredProperties = properties.filter(
+    (property) => Number(propertyIdsOnSale) === property.id - 1
   );
+
+  console.log("Properties: ", properties);
+  console.log("Property IDs on sale: ", propertyIdsOnSale);
+
+  console.log("Filtered properties: ", filteredProperties);
+  console.log("Property length: ", filteredProperties.length);
 
   return (
     <div className="min-h-screen bg-[#0A1A1F] relative overflow-hidden">
@@ -106,15 +121,28 @@ export default function Properties() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {isLoading ? (
               <div className="text-white text-center w-full">Loading...</div>
-            ) : filteredProperties.length ? (
+            ) : filteredProperties.length && propsy.length ? (
               filteredProperties.map((property, index) => (
                 <motion.div
-                  key={property.id}
+                  key={index}
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <PropertyCard property={property} />
+                  <PropertyCard
+                    property={{
+                      id: property.id,
+                      imageUrl: property.imageUrl,
+                      name: property.name,
+                      location: property.location,
+                      price: property.price,
+                      bedrooms: property.bedrooms,
+                      sqft: property.sqft,
+                      ammenities: property.ammenities,
+                      resalePrice: propsy[index].resalePrice,
+                      finalReturnRate: propsy[index].finalReturnRate,
+                    }}
+                  />
                 </motion.div>
               ))
             ) : (

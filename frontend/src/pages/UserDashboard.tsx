@@ -8,6 +8,7 @@ import { contractAddress, contractAbi } from "@/abi";
 import { useAccount, useReadContract } from "wagmi";
 import { formatEther } from "viem";
 import { useState, useEffect } from "react";
+// import { Button } from "@/components/ui/button";
 
 // Define types for our contract return values
 type DashboardStats = readonly [bigint, bigint, bigint]; // [multiplier, totalListings, totalSpentAVAX]
@@ -240,6 +241,11 @@ export default function Dashboard() {
                       <span className="text-[#9EF01A] font-semibold">
                         {formatEther(investment.investmentAmount)} AVAX
                       </span>
+                      {/* <Button>
+                        investment.investmentAmount ===  > 0n
+                          ? "Withdraw"
+                          : "Withdraw (Proposed)"
+                      </Button> */}
                     </div>
                     <div className="text-sm text-white/70 mt-1">
                       Return Rate:{" "}
@@ -280,7 +286,7 @@ export default function Dashboard() {
                         {property?.name || `Property #${listing.propertyId}`}
                       </span>
                       <span className="text-[#9EF01A] font-semibold">
-                        {formatEther(BigInt(property.price))} AVAX
+                        {property.price.toString()} AVAX
                       </span>
                     </li>
                   );

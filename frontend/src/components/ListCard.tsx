@@ -1,8 +1,13 @@
 import { motion } from "framer-motion";
-import { Building2, Home, Maximize2, Plus, Quote } from 'lucide-react';
+import { Building2, Home, Maximize2, Plus, Quote } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import InvestForm from "./InvestForm";
 import { useState } from "react";
@@ -48,39 +53,43 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
   const getQuote = async () => {
     setIsQuoteLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getDescription`,
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getDescription`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             name: property.name,
             location: property.address,
-            price: (Number(property.price.toLocaleString()) / 10 ** 18).toString(),
+            price: (
+              Number(property.price.toLocaleString()) /
+              10 ** 18
+            ).toString(),
             bedrooms: property.bedrooms,
             sqft: property.sqft,
-            ammenities: property.ammenities
-           }),
+            ammenities: property.ammenities,
+          }),
         }
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch quote');
+        throw new Error("Failed to fetch quote");
       }
       const data = await response.json();
-      console.log("Data")
-      console.log(data)
+      console.log("Data");
+      console.log(data);
       setQuoteInfo({
         pitch: data.pitch,
         rating: data.rating,
-        realtorName: "Phil \"AI\" Dunphy" // Placeholder name as requested
+        realtorName: 'Phil "AI" Dunphy', // Placeholder name as requested
       });
     } catch (error) {
       console.error("Error fetching quote:", error);
       setQuoteInfo({
         pitch: "We apologize, but we couldn't fetch a quote at this time.",
         rating: 0,
-        realtorName: "N/A"
+        realtorName: "N/A",
       });
     } finally {
       setIsQuoteLoading(false);
@@ -93,7 +102,9 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
         {[1, 2, 3, 4, 5].map((star) => (
           <motion.svg
             key={star}
-            className={`w-6 h-6 ${star <= rating ? 'text-yellow-400' : 'text-gray-400'}`}
+            className={`w-6 h-6 ${
+              star <= rating ? "text-yellow-400" : "text-gray-400"
+            }`}
             fill="currentColor"
             viewBox="0 0 20 20"
             initial={{ scale: 1 }}
@@ -152,9 +163,7 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
             </span>
           </div>
           <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-400">
-            <span className="flex items-center">
-              {property.ammenities}
-            </span>
+            <span className="flex items-center">{property.ammenities}</span>
           </div>
           {/* Token Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-400">
@@ -191,28 +200,30 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
                 </Button>
               )}
             </DialogTrigger>
-            <DialogContent>
-              <div className="p-4">
-                <h2 className="text-lg font-semibold">
+            <DialogContent className="bg-[#0A1A1F]">
+              {/* <h2 className="text-lg font-semibold">
                   Invest in {property.name}
-                </h2>
-                <p className="text-sm text-gray-400 mt-2">
-                  You are about to invest in {property.name}. Are you sure you
-                  want to proceed?
-                </p>
-                <div className="mt-4 flex gap-4">
-                  <InvestForm property={property} />
-                </div>
+                </h2> */}
+              <DialogTitle className="text-lg font-semibold text-white">
+                Invest in {property.name}
+              </DialogTitle>
+              <p className="text-sm text-gray-400 mt-2">
+                You are about to invest in {property.name}. Are you sure you
+                want to proceed?
+              </p>
+              <div className="mt-4 flex gap-4">
+                <InvestForm property={property} />
               </div>
             </DialogContent>
           </Dialog>
           <Button
             variant="outline"
             size="icon"
-            className={`${property.availableTokens === 0
+            className={`${
+              property.availableTokens === 0
                 ? "text-gray-600 "
                 : "text-lime-400 border-lime-400 bg-gray-900 hover:text-lime-500 hover:bg-gray-800"
-              }`}
+            }`}
             disabled={property.availableTokens === 0}
           >
             <Building2 className="h-4 w-4" />
@@ -241,7 +252,9 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
                       <AvatarFallback>JD</AvatarFallback>
                     </Avatar>
                     <div>
-                      <h4 className="text-lg font-semibold text-white">{quoteInfo.realtorName}</h4>
+                      <h4 className="text-lg font-semibold text-white">
+                        {quoteInfo.realtorName}
+                      </h4>
                       <p className="text-sm text-gray-400">Trusted Realtor</p>
                     </div>
                   </div>
@@ -273,4 +286,3 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
     </motion.div>
   );
 }
-

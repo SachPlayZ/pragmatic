@@ -1,15 +1,34 @@
 import { contractAbi, contractAddress } from "@/abi";
 import { motion } from "framer-motion";
 import { Home, Maximize2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWriteContract } from "wagmi";
 
 export default function PropertyCard({ property }: any) {
+  console.log("Property", property);
   const { writeContractAsync } = useWriteContract();
   const [transactionStatus, setTransactionStatus] = useState("");
+  const [address, setAddress] = useState("");
+
+  const [lat, long] = property.location.split(",");
+  async function reverseGeocode(
+    latitude: number,
+    longitude: number
+  ): Promise<string> {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+    );
+    const data = await response.json();
+    return data.display_name;
+  }
+  useEffect(() => {
+    reverseGeocode(parseFloat(lat), parseFloat(long)).then((address) => {
+      setAddress(address);
+    });
+  }, [property.location]);
 
   async function handleBuy(id: number) {
-    console.log(`Buying property with id: ${id}`);
+    console.log(`Buying property with id: Contract ${id - 1} & Backend ${id}`);
     try {
       console.log(typeof property.resalePrice);
       const tx = await writeContractAsync(
@@ -17,7 +36,7 @@ export default function PropertyCard({ property }: any) {
           address: contractAddress,
           abi: contractAbi,
           functionName: "buyProperty",
-          args: [id],
+          args: [id - 1],
           value: BigInt(property.resalePrice),
         },
         {
@@ -50,7 +69,7 @@ export default function PropertyCard({ property }: any) {
     <div className="backdrop-blur-lg bg-white/10 rounded-2xl overflow-hidden border border-white/20 w-full h-[220px] flex flex-col sm:flex-row">
       <div className="w-full sm:w-1/2 h-1/2 sm:h-full overflow-hidden">
         <img
-          src={property.image}
+          src={property.imageUrl}
           alt={property.name}
           className="w-full h-full object-cover"
         />
@@ -61,11 +80,18 @@ export default function PropertyCard({ property }: any) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center text-white/80 text-sm">
               <Home className="w-4 h-4 mr-2" />
-              <span>{property.type}</span>
+              <span>{property.bedrooms}</span>
             </div>
             <div className="flex items-center text-white/80 text-sm">
               <Maximize2 className="w-4 h-4 mr-2" />
-              <span>{property.area} sqft</span>
+              <span>{property.sqft} sqft</span>
+            </div>
+            <div className="flex items-center text-white/80 text-sm">
+              <span>
+                {address.length > 95
+                  ? `${address.substring(0, 95)}...`
+                  : address}
+              </span>
             </div>
           </div>
         </div>
@@ -110,7 +136,7 @@ export default function PropertyCard({ property }: any) {
                 </svg>
               ) : (
                 <>
-                  Buy: {Number(property.resalePrice.toString()) / 10 ** 18}{" "}
+                  Buy: {Number(property.resalePrice) / 10 ** 18}{" "}
                   <img
                     src="/avax_black.svg"
                     alt="coin"

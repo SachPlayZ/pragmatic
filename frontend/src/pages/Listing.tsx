@@ -197,7 +197,7 @@ export default function Listing() {
             price: property.price,
             bedrooms: property.bedrooms,
             sqft: property.sqft,
-            tokenPrice: propertyFromContract.totalTokens,
+            tokenPrice: `${10 ** 18}`,
             availableTokens: (
               BigInt(propertyFromContract.totalTokens) -
               BigInt(propertyFromContract.totalInvestedTokens)

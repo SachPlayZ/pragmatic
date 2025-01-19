@@ -135,7 +135,7 @@ export default function InvestForm(props: any) {
             render={({ field }) => (
               <FormItem className="hidden">
                 <FormControl>
-                  <Input type="hidden" {...field} value={property.id} />
+                  <Input type="hidden" {...field} value={property.id - 1} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
