@@ -67,7 +67,7 @@ contract Check is ERC20, Ownable {
     }
 
     // Platform fee percentage (2%)
-    uint256 public constant PLATFORM_FEE = 2;
+    uint256 public constant PLATFORM_FEE = 5;
     uint256 public constant BASIS_POINTS = 300;
     uint256 public constant ONE_PROP_IN_AVAX = 1;
 
@@ -282,6 +282,11 @@ contract Check is ERC20, Ownable {
             prop.resalePrice = calculateResalePrice(_propertyId);
             prop.forSale = true;
             propertiesOnSale.push(_propertyId);
+
+            uint256 profit = prop.resalePrice - prop.totalValue;
+            uint256 fee = (profit * PLATFORM_FEE) / 100;
+
+            prop.resalePrice = prop.resalePrice + fee;
 
             (bool success, ) = payable(prop.owner).call{value: prop.totalValue}(
                 ""
