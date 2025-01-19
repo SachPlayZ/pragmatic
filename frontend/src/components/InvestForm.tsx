@@ -17,7 +17,7 @@ import { parseEther } from "viem";
 
 export default function InvestForm(props: any) {
   const { property } = props;
-  console.log(property);
+  console.log(property.id);
   const { writeContractAsync } = useWriteContract();
 
   const formSchema = z.object({

@@ -285,9 +285,12 @@ export default function Dashboard() {
                       <span className="text-white">
                         {property?.name || `Property #${listing.propertyId}`}
                       </span>
-                      <span className="text-[#9EF01A] font-semibold">
-                        {property.price.toString()} AVAX
-                      </span>
+                      <div className="flex">
+                      <div className="text-[#9EF01A] font-semibold">
+                        {Number(property.price) / 10 ** 18} 
+                      </div>
+                      <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
+                      </div>
                     </li>
                   );
                 })
