@@ -1,1 +1,1 @@
-Snowtrace Deployment URL : https://testnet.snowtrace.io/address/0xd1b49926Bc88EeB0775856d3459794a7dd3a2877/contract/43113/code
+Snowtrace Deployment URL : https://testnet.snowtrace.io/address/0xAaEC0a24a9F1A5189A140C33311EC5DcD568f65D/contract/43113/code
