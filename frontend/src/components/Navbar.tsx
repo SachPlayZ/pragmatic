@@ -41,7 +41,11 @@ const Navbar = () => {
                   transition={{ duration: 0.2 }}
                 >
                   <Link
-                    to={`/${item.toLowerCase().replace(" ", "-")}`}
+                    to={
+                      item === "How it Works"
+                        ? "https://pragmatic.gitbook.io/tokenx"
+                        : `/${item.toLowerCase().replace(" ", "-")}`
+                    }
                     className="text-white/80 hover:text-white transition-colors"
                   >
                     {item}

@@ -13,15 +13,12 @@ import {
 import { useWriteContract } from "wagmi";
 import { Button } from "./ui/button";
 import { contractAbi, contractAddress } from "@/abi";
-import { useState } from "react";
 import { parseEther } from "viem";
 
 export default function InvestForm(props: any) {
   const { property } = props;
   console.log(property);
   const { writeContractAsync } = useWriteContract();
-  const [transactionStatus, setTransactionStatus] = useState("");
-  const [transactionHash, setTransactionHash] = useState("");
 
   const formSchema = z.object({
     amount: z
@@ -69,29 +66,21 @@ export default function InvestForm(props: any) {
         {
           onSuccess(data: any) {
             console.log("Transaction successful!", data);
-            setTransactionStatus("Transaction submitted!");
-            setTransactionHash(data?.hash);
           },
           onSettled(data: any, error: any) {
             if (error) {
-              setTransactionStatus("Transaction failed.");
               console.error("Error on settlement:", error);
             } else {
               console.log("Transaction settled:", data);
-              setTransactionStatus("Transaction confirmed!");
-              setTransactionHash(data?.hash);
             }
           },
         }
       );
       if (tx) {
         console.log("Transaction hash:", tx);
-        setTransactionHash(tx);
-        setTransactionStatus("Transaction confirmed!");
       }
     } catch (error) {
       console.error("Error submitting transaction:", error);
-      setTransactionStatus("Transaction failed.");
     }
     form.reset();
   }

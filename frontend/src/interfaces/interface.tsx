@@ -7,4 +7,5 @@ export interface Property {
   imageUrl: string;
   bedrooms: string;
   sqft: string;
+  ammenities: string;
 }

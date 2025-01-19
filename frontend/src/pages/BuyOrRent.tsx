@@ -5,9 +5,49 @@ import PropertyCard from "@/components/ProductCard";
 import GetPropOnSale from "@/components/functions/GetPropOnSale";
 import { useEffect, useState } from "react";
 
+interface Property {
+  id: number;
+  owner: string;
+  imageUrl: string;
+  name: string;
+  location: string;
+  price: string;
+  bedrooms: number;
+  sqft: number;
+}
+
+interface PropertyOnSale {
+  owner: string;
+  totalValue: string;
+  resalePrice: string;
+  finalReturnRate: string;
+  id: number;
+}
+
 export default function Properties() {
-  const { data, refetch } = GetPropOnSale();
-  const [propertyList, setPropertyList] = useState([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [propertyIdsOnSale, setPropertyIdsOnSale] = useState<number[]>([]);
+
+  async function getProperties() {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/property`);
+    const data = await res.json();
+    return data as Property[];
+  }
+
+  const { refetch } = GetPropOnSale();
+
+  useEffect(() => {
+    getProperties()
+      .then((data) => {
+        setProperties(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching properties:", error);
+        setIsLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     console.log("Setting up refetch interval");
@@ -16,17 +56,28 @@ export default function Properties() {
       refetch()
         .then((result: any) => {
           console.log("Refetch successful: ", result);
-          setPropertyList(result.data);
+          if (result.data) {
+            const idsOnSale = result.data.map(
+              (property: PropertyOnSale) => property.id
+            );
+            setPropertyIdsOnSale(idsOnSale);
+          }
         })
         .catch((error: any) => {
           console.error("Error during refetch: ", error);
         });
     }, 5000);
+
     return () => {
       console.log("Clearing refetch interval");
       clearInterval(interval);
     };
   }, [refetch]);
+
+  // Filter the properties based on the propertyIdsOnSale
+  const filteredProperties = properties.filter((property) =>
+    propertyIdsOnSale.includes(property.id)
+  );
 
   return (
     <div className="min-h-screen bg-[#0A1A1F] relative overflow-hidden">
@@ -53,10 +104,12 @@ export default function Properties() {
           </motion.h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {propertyList.length ? (
-              propertyList.map((property, index) => (
+            {isLoading ? (
+              <div className="text-white text-center w-full">Loading...</div>
+            ) : filteredProperties.length ? (
+              filteredProperties.map((property, index) => (
                 <motion.div
-                  key={index}
+                  key={property.id}
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}

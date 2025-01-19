@@ -74,29 +74,38 @@ interface ComparisonObject {
 }
 
 export default function Listing() {
-  const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>([]);
+  const [properties, setProperties] = useState<PropertyDetailsFromBackend[]>(
+    []
+  );
   const [props, setProps] = useState<PropsForCompare[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [combinedProperties, setCombinedProperties] = useState<Property[]>([]);
-  const [comparisonData, setComparisonData] = useState<ComparisonObject | null>(null);
+  const [comparisonData, setComparisonData] = useState<ComparisonObject | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true); // Added loading state
 
   const { data: propertyList, refetch } = GetAllProperties();
 
-  const fetchComparisonData = async (propertiesToCompare: PropsForCompare[]) => {
-    const propertiesToCompareStringified = propertiesToCompare.map((property) => ({
-      ...property,
-      id: property.id.toString(),
-      price: property.price.toString(),
-      bedrooms: property.bedrooms.toString(),
-      sqft: property.sqft.toString(),
-    }));
+  const fetchComparisonData = async (
+    propertiesToCompare: PropsForCompare[]
+  ) => {
+    const propertiesToCompareStringified = propertiesToCompare.map(
+      (property) => ({
+        ...property,
+        id: property.id.toString(),
+        price: property.price.toString(),
+        bedrooms: property.bedrooms.toString(),
+        sqft: property.sqft.toString(),
+      })
+    );
     try {
       const response = await fetch(
         `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getComparison`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ properties: propertiesToCompareStringified }),
         }
@@ -117,15 +126,15 @@ export default function Listing() {
       imageUrl: property.imageUrl,
       name: property.name,
       location: property.location,
-      price: `${(Number(property.price)/10**18).toString()} AVAX`,
+      price: `${(Number(property.price) / 10 ** 18).toString()} AVAX`,
       bedrooms: property.bedrooms,
       sqft: property.sqft,
-      ammenities: property.ammenities
-    }
+      ammenities: property.ammenities,
+    };
     if (!props.some((p) => p.id === property.id)) {
       const updatedProps = [...props, proper];
       setProps(updatedProps);
-      
+
       // Fetch comparison data if we have 2 or more properties
       if (updatedProps.length >= 2) {
         await fetchComparisonData(updatedProps);
@@ -135,6 +144,7 @@ export default function Listing() {
 
   useEffect(() => {
     const fetchProperties = async () => {
+      setIsLoading(true); // Set loading to true before fetching
       try {
         const response = await fetch(
           `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
@@ -143,6 +153,8 @@ export default function Listing() {
         setProperties(data);
       } catch (error) {
         console.error("Error fetching properties:", error);
+      } finally {
+        setIsLoading(false); // Set loading to false after fetching, regardless of success or failure
       }
     };
 
@@ -150,35 +162,13 @@ export default function Listing() {
     refetch();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Setting up refetch interval");
-
-  //   const interval = setInterval(() => {
-  //     refetch()
-  //       .then((result: any) => {
-  //         console.log("Refetch successful: ", result);
-  //       })
-  //       .catch((error: any) => {
-  //         console.error("Error during refetch: ", error);
-  //       });
-  //   }, 5000);
-  //   return () => {
-  //     console.log("Clearing refetch interval");
-  //     clearInterval(interval);
-  //   };
-  // }, [refetch]);
-
   useEffect(() => {
     console.log("Setting up refetch interval");
 
     const interval = setInterval(() => {
-      refetch()
-        // .then(() => {
-        //   // console.log("Refetch successful: ", result);
-        // })
-        .catch((error: any) => {
-          console.error("Error during refetch: ", error);
-        });
+      refetch().catch((error: any) => {
+        console.error("Error during refetch: ", error);
+      });
     }, 5000);
     return () => {
       console.log("Clearing refetch interval");
@@ -213,7 +203,7 @@ export default function Listing() {
               BigInt(propertyFromContract.totalInvestedTokens)
             ).toString(),
             address: property.address,
-            ammenities: property.ammenities
+            ammenities: property.ammenities,
           };
         })
         .filter((property): property is Property => property !== null);
@@ -252,15 +242,21 @@ export default function Listing() {
             <ListForm />
           </motion.div>
 
-          <div className="grid lg:w-[75%] gap-6 lg:px-6 md:grid-cols-2 lg:grid-cols-2">
-            {combinedProperties.map((property) => (
-              <ListCard
-                property={property}
-                key={property.id}
-                addToComparison={addToComparison}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-[#D0FD3E]"></div>
+            </div>
+          ) : (
+            <div className="grid lg:w-[75%] gap-6 lg:px-6 md:grid-cols-2 lg:grid-cols-2">
+              {combinedProperties.map((property) => (
+                <ListCard
+                  property={property}
+                  key={property.id}
+                  addToComparison={addToComparison}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </main>
       <button

@@ -7,7 +7,6 @@ import { useWriteContract } from "wagmi";
 export default function PropertyCard({ property }: any) {
   const { writeContractAsync } = useWriteContract();
   const [transactionStatus, setTransactionStatus] = useState("");
-  const [transactionHash, setTransactionHash] = useState("");
 
   async function handleBuy(id: number) {
     console.log(`Buying property with id: ${id}`);
@@ -25,7 +24,6 @@ export default function PropertyCard({ property }: any) {
           onSuccess(data: any) {
             console.log("Transaction successful!", data);
             setTransactionStatus("Transaction submitted!");
-            setTransactionHash(data?.hash);
           },
           onSettled(data: any, error: any) {
             if (error) {
@@ -34,14 +32,12 @@ export default function PropertyCard({ property }: any) {
             } else {
               console.log("Transaction settled:", data);
               setTransactionStatus("Transaction confirmed!");
-              setTransactionHash(data?.hash);
             }
           },
         }
       );
       if (tx) {
         console.log("Transaction hash:", tx);
-        setTransactionHash(tx);
         setTransactionStatus("Transaction confirmed!");
       }
     } catch (error) {
