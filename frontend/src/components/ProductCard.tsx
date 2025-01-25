@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Home, Maximize2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useWriteContract } from "wagmi";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PropertyCard({ property }: any) {
   console.log("Property", property);
@@ -65,8 +66,10 @@ export default function PropertyCard({ property }: any) {
     }
   }
 
+  const { toast } = useToast();
+
   return (
-    <div className="backdrop-blur-lg bg-white/10 rounded-2xl overflow-hidden border border-white/20 w-full h-[220px] flex flex-col sm:flex-row">
+    <div className="backdrop-blur-lg bg-white/10 rounded-2xl overflow-hidden border border-white/20 w-full h-full flex flex-col sm:flex-row">
       <div className="w-full sm:w-1/2 h-1/2 sm:h-full overflow-hidden">
         <img
           src={property.imageUrl}
@@ -102,6 +105,12 @@ export default function PropertyCard({ property }: any) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="flex-1 bg-gradient-to-r from-[#D0FD3E]/10 to-[#9EF01A]/10 border border-[rgb(208,253,62)] text-[#D0FD3E] px-2 py-1 rounded-lg font-medium hover:bg-[#D0FD3E]/20 transition-all text-center text-sm flex items-center justify-center"
+              onClick={() =>
+                toast({
+                  title: "Renting unsupported",
+                  description: "Renting Not supported yet!",
+                })
+              }
             >
               Rent: {property.rentPrice}{" "}
               <img src="/avax_lime.svg" alt="coin" className="w-4 h-4 ml-1" />
@@ -135,14 +144,17 @@ export default function PropertyCard({ property }: any) {
                   ></path>
                 </svg>
               ) : (
-                <>
-                  Buy: {Number(property.resalePrice) / 10 ** 18}{" "}
-                  <img
-                    src="/avax_black.svg"
-                    alt="coin"
-                    className="w-4 h-4 ml-1"
-                  />
-                </>
+                <span className="flex flex-col items-center justify-center gap-1">
+                  <span>Buy:</span>
+                  <span className="gap-1 flex items-center">
+                    {Number(property.resalePrice) / 10 ** 18}
+                    <img
+                      src="/avax_black.svg"
+                      alt="coin"
+                      className="w-4 h-4 ml-1"
+                    />
+                  </span>
+                </span>
               )}
             </motion.button>
           </div>

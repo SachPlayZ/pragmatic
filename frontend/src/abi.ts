@@ -376,19 +376,6 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "BASIS_POINTS",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "ONE_AVAX_IN_PROP",
     outputs: [
       {
@@ -823,6 +810,11 @@ export const contractAbi = [
             name: "tokenPrice",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "hikedPrice",
+            type: "uint256",
+          },
         ],
         internalType: "struct Check.InvestmentInfo[]",
         name: "",
@@ -1167,4 +1159,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0xAaEC0a24a9F1A5189A140C33311EC5DcD568f65D";
+export const contractAddress = "0x8aba0F131eAAf04f401C732EEd0430864D0dAb1F";

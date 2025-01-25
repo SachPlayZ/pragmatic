@@ -13,7 +13,9 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  * representing ownership shares. It includes features for return rate voting and property resale.
  */
 contract Check is ERC20, Ownable {
+    // Data Feed
     AggregatorV3Interface internal dataFeed;
+
     struct Property {
         address owner;
         uint256 totalValue; // AVAX
@@ -64,11 +66,13 @@ contract Check is ERC20, Ownable {
         uint256 proposedRate;
         uint256 actualRate;
         uint256 tokenPrice;
+        uint256 hikedPrice;
+        bool forSale;
     }
 
     // Platform fee percentage (2%)
     uint256 public constant PLATFORM_FEE = 5;
-    uint256 public constant BASIS_POINTS = 300;
+    // Conversion rate between AVAX and PROP (NOT YET IMPLEMENTED)
     uint256 public constant ONE_PROP_IN_AVAX = 1;
 
     // Will Update
@@ -80,8 +84,6 @@ contract Check is ERC20, Ownable {
     uint256 private propertyCounter;
     // Mapping of property investments per address
     mapping(address => mapping(uint256 => Investment)) public investments;
-    // // Burn limits per property
-    // mapping(uint256 => uint256) public burnLimits;
     // Available liquidity per property
     mapping(uint256 => uint256) public propertyLiquidity;
     // Track total weighted votes per property
@@ -582,6 +584,15 @@ contract Check is ERC20, Ownable {
                 uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_AVAX) /
                     prop.totalTokens;
 
+                // Find the hiked price from properties on sale
+                uint256 hikedPrice = 0;
+                for (uint256 j = 0; j < propertiesOnSale.length; j++) {
+                    if (propertiesOnSale[j] == propertyId) {
+                        hikedPrice = prop.resalePrice;
+                        break;
+                    }
+                }
+
                 investmentInfos[currentIndex] = InvestmentInfo({
                     propertyId: propertyId,
                     investmentAmount: investment.investmentAmount,
@@ -589,7 +600,9 @@ contract Check is ERC20, Ownable {
                     actualRate: prop.returnRateFinalized
                         ? prop.finalReturnRate
                         : 0,
-                    tokenPrice: tokenPrice
+                    tokenPrice: tokenPrice,
+                    hikedPrice: hikedPrice,
+                    forSale: prop.forSale
                 });
                 currentIndex++;
             }

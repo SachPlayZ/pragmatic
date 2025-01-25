@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { GetAllProperties } from "@/components/functions/GetAllProperties";
 import CoolOverlayModal from "@/components/CoolOverlayModal";
 import { GitCompareArrows } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PropertyFromContract {
   owner: string;
@@ -253,18 +254,22 @@ export default function Listing() {
                   property={property}
                   key={property.id}
                   addToComparison={addToComparison}
+                  forSale={
+                    (propertyList as PropertyFromContract[])[property.id - 1]
+                      .forSale
+                  }
                 />
               ))}
             </div>
           )}
         </section>
       </main>
-      <button
+      <Button
         onClick={() => setIsModalOpen(true)}
         className="fixed bottom-20 right-4 rounded-full p-4 shadow-lg transition-transform hover:scale-110 bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F]"
       >
         <GitCompareArrows className="h-6 w-6" />
-      </button>
+      </Button>
       {props.length > 1 && comparisonData && (
         <CoolOverlayModal
           isOpen={isModalOpen}

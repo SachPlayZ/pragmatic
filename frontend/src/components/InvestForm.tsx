@@ -38,7 +38,6 @@ export default function InvestForm(props: any) {
       .refine((val) => val >= 5 && val <= 20, {
         message: "Proposed rate must be between 5 and 20",
       }),
-    propertyId: z.string().transform((val) => Number(val)),
   });
 
   const form = useForm({
@@ -46,13 +45,14 @@ export default function InvestForm(props: any) {
     defaultValues: {
       amount: "",
       proposedRate: "",
-      propertyId: "",
     },
   });
 
   async function onSubmit(data: any) {
     console.log(data);
-    // Call the invest API here
+    data = { ...data, propertyId: property.id - 1 };
+    console.log(data);
+
     const amt = parseEther(data.amount.toString());
     try {
       const tx = await writeContractAsync(
@@ -123,19 +123,6 @@ export default function InvestForm(props: any) {
                     {...field}
                     className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="propertyId"
-            render={({ field }) => (
-              <FormItem className="hidden">
-                <FormControl>
-                  <Input type="hidden" {...field} value={property.id - 1} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

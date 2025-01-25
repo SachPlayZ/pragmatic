@@ -5,9 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Building2, BarChart3, ListChecks, Wallet } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { contractAddress, contractAbi } from "@/abi";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { formatEther } from "viem";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
 // import { Button } from "@/components/ui/button";
 
 // Define types for our contract return values
@@ -87,6 +90,11 @@ export default function Dashboard() {
     args: [address],
   }) as { data: bigint | undefined; isLoading: boolean };
 
+  useEffect(() => {
+    console.log("investments: ", investments);
+    console.log("listings: ", listings);
+  }, [investments, listings]);
+
   async function getListingsFromBackend(address: string) {
     try {
       setIsLoadingProperties(true);
@@ -120,7 +128,7 @@ export default function Dashboard() {
       }
       const data = await response.json();
       const filteredData = data.filter((prop: Property) =>
-        ids.includes(prop.id)
+        ids.includes(prop.id + 1)
       );
       console.log("Filtered data", filteredData);
       return filteredData as Property[];
@@ -147,10 +155,52 @@ export default function Dashboard() {
       const propertyIds = investments.map(
         (investment) => Number(investment.propertyId) + 1
       );
+      console.log(propertyIds);
       getPropertiesByIds(propertyIds).then(setInvestmentProperties);
-      console.log("Investment properties", investmentProperties);
+      // console.log("Investment properties", investmentProperties);
     }
   }, [investments]);
+
+  useEffect(() => {
+    if (properties.length > 0) {
+      properties.forEach((property) => {
+        console.log("Property name:", property.name);
+      });
+    }
+  }, [properties]);
+
+  const { writeContractAsync } = useWriteContract();
+
+  async function handleWithdraw(id: number) {
+    console.log("Withdrawing from property:", id);
+    try {
+      const tx = await writeContractAsync(
+        {
+          address: contractAddress,
+          abi: contractAbi,
+          functionName: "burnTokensFromProperty",
+          args: [id - 1],
+        },
+        {
+          onSuccess(data: any) {
+            console.log("Burn successful!", data);
+          },
+          onSettled(data: any, error: any) {
+            if (error) {
+              console.error("Error on settlement:", error);
+            } else {
+              console.log("Transaction settled:", data);
+            }
+          },
+        }
+      );
+      if (tx) {
+        console.log("Transaction hash:", tx);
+      }
+    } catch (error) {
+      console.error("Error submitting transaction:", error);
+    }
+  }
 
   const processedDashboardItems: DashboardItem[] = [
     {
@@ -235,20 +285,30 @@ export default function Dashboard() {
                   >
                     <div className="flex justify-between items-center">
                       <span className="text-white">
-                        {investmentProperties[index]?.name ??
+                        {/* {investmentProperties.find(
+                          (prop) =>
+                            prop.id === Number(investment.propertyId) + 1
+                        )?.name || `Property #${investment.propertyId}`} */}
+                        {properties[index]?.name ||
                           `Property #${investment.propertyId}`}
                       </span>
                       <span className="text-[#9EF01A] font-semibold">
                         {formatEther(investment.investmentAmount)} AVAX
                       </span>
-                      {/* <Button>
-                        investment.investmentAmount ===  > 0n
+
+                      <Button
+                        onClick={() => handleWithdraw(properties[index].id)}
+                      >
+                        {investment.actualRate > 0n
                           ? "Withdraw"
-                          : "Withdraw (Proposed)"
-                      </Button> */}
+                          : "Withdraw (Proposed)"}
+                      </Button>
                     </div>
+                    {/* <div className="w-[50%] py-2">
+                      <Progress value={Number(investment.investmentAmount)} />
+                    </div> */}
                     <div className="text-sm text-white/70 mt-1">
-                      Return Rate:{" "}
+                      Finalized Return Rate:{" "}
                       {investment.actualRate > 0n
                         ? `${Number(investment.actualRate)}%`
                         : `${Number(investment.proposedRate)}% (Proposed)`}
@@ -285,11 +345,12 @@ export default function Dashboard() {
                       <span className="text-white">
                         {property?.name || `Property #${listing.propertyId}`}
                       </span>
-                      <div className="flex">
-                      <div className="text-[#9EF01A] font-semibold">
-                        {Number(property.price) / 10 ** 18} 
-                      </div>
-                      <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
+                      <div className="flex gap-2 items-center">
+                        <span className="text-white">Price</span>
+                        <div className="text-[#9EF01A] font-semibold">
+                          {Number(property?.price) / 10 ** 18}
+                        </div>
+                        <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
                       </div>
                     </li>
                   );

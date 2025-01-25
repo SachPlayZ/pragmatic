@@ -12,9 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import InvestForm from "./InvestForm";
 import { useState } from "react";
 
+import { useEffect } from "react";
+
 interface ListCardProps {
   property: any;
   addToComparison: (property: any) => void;
+  forSale: boolean;
 }
 
 interface PropsForCompare {
@@ -35,7 +38,11 @@ interface QuoteInfo {
   realtorName: string;
 }
 
-export default function ListCard({ property, addToComparison }: ListCardProps) {
+export default function ListCard({
+  property,
+  addToComparison,
+  forSale,
+}: ListCardProps) {
   const [showInvestButton, setShowInvestButton] = useState(true);
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
@@ -118,6 +125,16 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
     );
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log(
+        `Available tokens for ${property.name}: ${property.availableTokens}`
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [property]);
+
   return (
     <motion.div
       key={property.id}
@@ -143,10 +160,10 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
           <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <h3 className="text-lg font-semibold">{property.name}</h3>
-              <p className="text-sm text-gray-400">{property.address}</p>
+              <p className="text-xs text-gray-400">{property.address}</p>
             </div>
-            <span className="mt-2 sm:mt-0 text-lg font-bold text-lime-400">
-              {Number(property.price.toLocaleString()) / 10 ** 18}$AVAX
+            <span className="mt-2 sm:mt-0 text-md font-bold text-lime-400">
+              {Number(property.price.toLocaleString()) / 10 ** 18} $AVAX
             </span>
           </div>
 
@@ -191,30 +208,32 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
         <CardFooter className="flex flex-wrap items-center gap-2 p-4 pt-1">
           <Dialog onOpenChange={(open) => setShowInvestButton(!open)}>
             <DialogTrigger asChild>
-              {showInvestButton && (
-                <Button
-                  className="flex-1 bg-lime-400 text-black hover:bg-lime-500 text-sm"
-                  disabled={property.availableTokens === 0}
-                >
-                  Invest
-                </Button>
-              )}
+              <Button
+                className={`flex-1 text-sm ${
+                  property.availableTokens > 0
+                    ? "bg-lime-400 text-black hover:bg-lime-500"
+                    : "bg-gray-700 text-white cursor-not-allowed"
+                }`}
+                disabled={property.availableTokens === 0}
+              >
+                {property.availableTokens > 0 ? "Invest" : "Fully Invested 🚫"}
+              </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#0A1A1F]">
-              {/* <h2 className="text-lg font-semibold">
+
+            {property.availableTokens > 0 && (
+              <DialogContent className="bg-[#0A1A1F]">
+                <DialogTitle className="text-lg font-semibold text-white">
                   Invest in {property.name}
-                </h2> */}
-              <DialogTitle className="text-lg font-semibold text-white">
-                Invest in {property.name}
-              </DialogTitle>
-              <p className="text-sm text-gray-400 mt-2">
-                You are about to invest in {property.name}. Are you sure you
-                want to proceed?
-              </p>
-              <div className="mt-4 flex gap-4">
-                <InvestForm property={property} />
-              </div>
-            </DialogContent>
+                </DialogTitle>
+                <p className="text-sm text-gray-400 mt-2">
+                  You are about to invest in {property.name}. Are you sure you
+                  want to proceed?
+                </p>
+                <div className="mt-4 flex gap-4">
+                  <InvestForm property={property} />
+                </div>
+              </DialogContent>
+            )}
           </Dialog>
           <Button
             variant="outline"

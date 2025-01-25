@@ -4,7 +4,7 @@ async function main() {
   // Get the ContractFactory for the contract
   const CheckCont = await ethers.getContractFactory("Check");
 
-  console.log("Deploying Air...");
+  console.log("Deploying Check...");
   const Prop = await CheckCont.deploy();
 
   // Wait for the deployment to complete
