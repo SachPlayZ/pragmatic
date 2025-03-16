@@ -815,6 +815,11 @@ export const contractAbi = [
             name: "hikedPrice",
             type: "uint256",
           },
+          {
+            internalType: "bool",
+            name: "forSale",
+            type: "bool",
+          },
         ],
         internalType: "struct Check.InvestmentInfo[]",
         name: "",
@@ -1159,4 +1164,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x8aba0F131eAAf04f401C732EEd0430864D0dAb1F";
+export const contractAddress = "0x29C9Ee8eE1A26619212326cFc928A93Cf7BC0e5F";
