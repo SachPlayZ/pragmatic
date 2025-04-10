@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+.gradient-text {
+  position: relative;
+  display: inline-block;
+}
+
+.gradient-text::before {
+  content: attr(href);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: transparent;
+  background-image: linear-gradient(to right, #ff8000, #ff3300);
+  background-clip: text;
+  -webkit-background-clip: text;
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 0.3s ease;
+}
+
+.gradient-text:hover::before {
+  clip-path: circle(100% at 50% 50%);
+}
+.gradient-focus-ring:focus {
+  box-shadow: 0 0 0 2px transparent;
+  background-image: linear-gradient(#1f2937, #1f2937),
+    linear-gradient(to right, #ff8000, #ff3300);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.gradient-focus-ring {
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.animate-float:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.animate-float:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.animate-float:nth-child(4) {
+  animation-delay: 1.5s;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  background: #01090c;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.slick-dots {
+  bottom: 16px;
+}
+
+.slick-dots li button:before {
+  color: #d0fd3e;
+  opacity: 0.5;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #d0fd3e;
+  opacity: 1;
+}
+
+.slick-prev,
+.slick-next {
+  z-index: 1;
+}
+
+.slick-prev {
+  left: 16px;
+}
+
+.slick-next {
+  right: 16px;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: #d0fd3e;
+}
