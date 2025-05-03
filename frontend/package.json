@@ -25,6 +25,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "framer-motion": "^11.18.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.471.1",
     "maplibre-gl": "^5.0.1",
     "path": "^0.12.7",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@types/leaflet": "^1.9.17",
     "@types/node": "^22.10.6",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
