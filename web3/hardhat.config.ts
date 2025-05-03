@@ -1,30 +1,64 @@
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-verify";
-import "dotenv/config";
+import "@nomicfoundation/hardhat-toolbox";
+import * as dotenv from "dotenv";
 
-const FUJI_RPC_URL = process.env.FUJI_RPC_URL;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const FUJI_API_KEY = process.env.FUJI_API_KEY;
+dotenv.config({ path: __dirname + "/.env" });
+const ACCOUNT_PRIVATE_KEY = process.env.ACCOUNT_PRIVATE_KEY || "";
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  solidity: "0.8.28",
+  paths: {
+    artifacts: "./src",
+  },
   networks: {
-    fuji: {
-      url: `${FUJI_RPC_URL}`,
-      accounts: [`${PRIVATE_KEY}`],
-      chainId: 43113,
+    "edu-chain-testnet": {
+      // Testnet configuration
+      url: `https://rpc.open-campus-codex.gelato.digital`,
+      accounts: [ACCOUNT_PRIVATE_KEY],
+    },
+    "edu-chain": {
+      // Mainnet configuration
+      url: `https://rpc.edu-chain.raas.gelato.cloud`,
+      accounts: [ACCOUNT_PRIVATE_KEY],
+    },
+    "pharos-devnet": {
+      url: "https://devnet.dplabs-internal.com",
+      accounts: [ACCOUNT_PRIVATE_KEY],
     },
   },
   etherscan: {
     apiKey: {
-      avalancheFujiTestnet: `${FUJI_API_KEY}`,
+      "edu-chain-testnet": "XXXX",
+      "edu-chain": "XXXX",
+      "pharos-devnet": "XXXX",
     },
+    customChains: [
+      {
+        network: "edu-chain-testnet",
+        chainId: 656476,
+        urls: {
+          apiURL: "https://edu-chain-testnet.blockscout.com/api",
+          browserURL: "https://edu-chain-testnet.blockscout.com",
+        },
+      },
+      {
+        network: "pharos-devnet",
+        chainId: 50002,
+        urls: {
+          apiURL: "https://devnet.dplabs-internal.com/api",
+          browserURL: "https://devnet.dplabs-internal.com",
+        },
+      },
+      {
+        network: "edu-chain",
+        chainId: 41923, // Replace with the correct mainnet chain ID if different
+        urls: {
+          apiURL: "https://educhain.blockscout.com/api",
+          browserURL: "https://educhain.blockscout.com",
+        },
+      },
+    ],
   },
-  sourcify: {
-    enabled: true,
-  },
-  solidity: "0.8.28",
 };
 
 export default config;

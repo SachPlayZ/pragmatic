@@ -18,7 +18,7 @@ root.render(
     <QueryClientProvider client={queryClient}>
       <RainbowKitProvider
         modalSize="wide"
-        initialChain={43113}
+        initialChain={50002}
         theme={darkTheme({
           accentColor: "#9EF01A",
           accentColorForeground: "#0A1A1F",

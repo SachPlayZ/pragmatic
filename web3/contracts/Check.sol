@@ -17,6 +17,7 @@ contract Check is ERC20, Ownable {
     AggregatorV3Interface internal dataFeed;
 
     struct Property {
+        uint256 id;
         address owner;
         uint256 totalValue; // AVAX
         uint256 totalTokens; // PROP
@@ -81,7 +82,7 @@ contract Check is ERC20, Ownable {
     // Mapping to store properties
     mapping(uint256 => Property) public property;
     // Property ID counter
-    uint256 private propertyCounter;
+    uint256 private propertyCounter = 0;
     // Mapping of property investments per address
     mapping(address => mapping(uint256 => Investment)) public investments;
     // Available liquidity per property
@@ -138,10 +139,10 @@ contract Check is ERC20, Ownable {
 
         // One AVAX = 1000 PROP here for testing purposes
         uint256 _totalTokens = _totalValue * ONE_AVAX_IN_PROP;
-
         uint256 propertyId = propertyCounter++;
 
         property[propertyId] = Property({
+            id: propertyId,
             owner: msg.sender,
             totalValue: _totalValue, // Assume _totalValue is provided in wei
             totalTokens: _totalTokens,
