@@ -1,22 +1,30 @@
 import { http, createConfig } from "wagmi";
-import { mainnet, sepolia, baseSepolia, avalancheFuji } from "wagmi/chains";
-import { connectors } from "./wallets";
 import { Chain } from "@rainbow-me/rainbowkit";
+import { connectors } from "./wallets";
 
-const chains: readonly [Chain, ...Chain[]] = [
-  sepolia,
-  mainnet,
-  baseSepolia,
-  avalancheFuji,
-];
+const customChain = {
+  id: 50002,
+  name: "Pharos Devnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "Pharos",
+    symbol: "PHR",
+  },
+  rpcUrls: {
+    public: { http: ["https://devnet.dplabs-internal.com"] },
+    default: { http: ["https://devnet.dplabs-internal.com"] },
+  },
+  blockExplorers: {
+    default: { name: "PharosScan", url: "https://pharosscan.xyz/" },
+  },
+} as const satisfies Chain;
+
+const chains: readonly [Chain, ...Chain[]] = [customChain];
 
 export const config = createConfig({
   chains,
   connectors,
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [baseSepolia.id]: http(),
-    [avalancheFuji.id]: http(),
+    [customChain.id]: http(),
   },
 });
