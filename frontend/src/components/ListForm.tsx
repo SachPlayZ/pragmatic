@@ -166,9 +166,15 @@ function ListForm() {
   const [coordinate, setCoordinate] = useState([0, 0]);
 
   useEffect(() => {
-    if (coordinate[0] !== 0) {
-      form.setValue("location", { lng: coordinate[0], lat: coordinate[1] });
+    const existing = form.getValues("location");
+    if (existing?.lat && existing?.lng) {
+      setCoordinate([existing.lat, existing.lng]);
+      // Optionally, drop the marker on mount
     }
+  }, []);
+
+  useEffect(() => {
+    form.setValue("location", { lat: coordinate[0], lng: coordinate[1] });
   }, [coordinate, form]);
 
   return (
