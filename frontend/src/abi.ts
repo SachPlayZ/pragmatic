@@ -141,6 +141,25 @@ export const contractAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "string",
+        name: "message",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "Debug",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "uint256",
         name: "propertyId",
@@ -191,6 +210,31 @@ export const contractAbi = [
       },
     ],
     name: "OwnershipTransferred",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "propertyId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+    ],
+    name: "PropertyBought",
     type: "event",
   },
   {
@@ -332,7 +376,20 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "BASIS_POINTS",
+    name: "ONE_AVAX_IN_PROP",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ONE_PROP_IN_AVAX",
     outputs: [
       {
         internalType: "uint256",
@@ -427,19 +484,13 @@ export const contractAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "_propertyId",
         type: "uint256",
       },
     ],
-    name: "burnLimits",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    name: "burnTokensFromProperty",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -449,15 +500,10 @@ export const contractAbi = [
         name: "_propertyId",
         type: "uint256",
       },
-      {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
     ],
-    name: "burnTokensFromProperty",
+    name: "buyProperty",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -475,12 +521,69 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "getAllListings",
+    name: "getAllProperties",
     outputs: [
       {
-        internalType: "uint256[]",
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalTokens",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "isListed",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "rentalIncome",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "resalePrice",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "forSale",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "finalReturnRate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalInvestedTokens",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "returnRateFinalized",
+            type: "bool",
+          },
+        ],
+        internalType: "struct Check.Property[]",
         name: "",
-        type: "uint256[]",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",
@@ -488,12 +591,12 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "getAllPropertiesOnSale",
+    name: "getChainlinkDataFeedLatestAnswer",
     outputs: [
       {
-        internalType: "uint256[]",
+        internalType: "int256",
         name: "",
-        type: "uint256[]",
+        type: "int256",
       },
     ],
     stateMutability: "view",
@@ -503,41 +606,26 @@ export const contractAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "_investor",
+        name: "_wallet",
         type: "address",
       },
-      {
-        internalType: "uint256",
-        name: "_propertyId",
-        type: "uint256",
-      },
     ],
-    name: "getInvestmentDetails",
+    name: "getDashboardStats",
     outputs: [
       {
+        internalType: "int256",
+        name: "multiplier",
+        type: "int256",
+      },
+      {
         internalType: "uint256",
-        name: "tokenAmount",
+        name: "totalListings",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "investmentAmount",
+        name: "totalSpentAVAX",
         type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "proposedReturnRate",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "hasVoted",
-        type: "bool",
-      },
-      {
-        internalType: "bool",
-        name: "exists",
-        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -554,39 +642,86 @@ export const contractAbi = [
     name: "getListingById",
     outputs: [
       {
-        internalType: "address",
-        name: "owner",
-        type: "address",
+        components: [
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalTokens",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "isListed",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "rentalIncome",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "resalePrice",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "forSale",
+            type: "bool",
+          },
+        ],
+        internalType: "struct Check.PropertyDetails",
+        name: "",
+        type: "tuple",
       },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getPropertiesOnSale",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "totalValue",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "totalTokens",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "isListed",
-        type: "bool",
-      },
-      {
-        internalType: "uint256",
-        name: "rentalIncome",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "resalePrice",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "forSale",
-        type: "bool",
+        components: [
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "resalePrice",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "finalReturnRate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Check.PropertyOnSaleDetails[]",
+        name: "",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",
@@ -595,37 +730,136 @@ export const contractAbi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_propertyId",
-        type: "uint256",
-      },
-    ],
-    name: "getPropertyOnSaleById",
-    outputs: [
-      {
         internalType: "address",
-        name: "owner",
+        name: "_investor",
         type: "address",
       },
+    ],
+    name: "getUserInvestments",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "totalValue",
-        type: "uint256",
+        components: [
+          {
+            internalType: "uint256",
+            name: "tokenAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "investmentAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "proposedReturnRate",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "hasVoted",
+            type: "bool",
+          },
+          {
+            internalType: "bool",
+            name: "exists",
+            type: "bool",
+          },
+        ],
+        internalType: "struct Check.Investment[]",
+        name: "",
+        type: "tuple[]",
       },
       {
-        internalType: "uint256",
-        name: "resalePrice",
-        type: "uint256",
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
       },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
       {
-        internalType: "uint256",
-        name: "finalReturnRate",
-        type: "uint256",
+        internalType: "address",
+        name: "_wallet",
+        type: "address",
       },
+    ],
+    name: "getWalletInvestments",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "availableLiquidity",
-        type: "uint256",
+        components: [
+          {
+            internalType: "uint256",
+            name: "propertyId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "investmentAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "proposedRate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "actualRate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenPrice",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "hikedPrice",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "forSale",
+            type: "bool",
+          },
+        ],
+        internalType: "struct Check.InvestmentInfo[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_wallet",
+        type: "address",
+      },
+    ],
+    name: "getWalletListings",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "propertyId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "tokenPrice",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Check.ListingInfo[]",
+        name: "",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",
@@ -697,25 +931,7 @@ export const contractAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_propertyId",
-        type: "uint256",
-      },
-    ],
-    name: "listForResale",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "_totalValue",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_totalTokens",
         type: "uint256",
       },
     ],
@@ -758,8 +974,13 @@ export const contractAbi = [
         type: "uint256",
       },
     ],
-    name: "properties",
+    name: "property",
     outputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
       {
         internalType: "address",
         name: "owner",
@@ -953,4 +1174,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x29C9Ee8eE1A26619212326cFc928A93Cf7BC0e5F";
+export const contractAddress = "0xfd4F95F894a856588074B96dde84484c307B2929";

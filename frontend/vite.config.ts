@@ -12,9 +12,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api/proxy": {
-        target: "https://devnet.dplabs-internal.com",
+        target: "http://localhost:3000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/proxy/, ""),
+        rewrite: (path) => path.replace(/^\/api\/proxy/, "/api/proxy"),
       },
     },
   },
