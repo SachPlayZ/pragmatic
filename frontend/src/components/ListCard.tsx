@@ -17,7 +17,6 @@ import { useEffect } from "react";
 interface ListCardProps {
   property: any;
   addToComparison: (property: any) => void;
-  forSale: boolean;
 }
 
 interface PropsForCompare {
@@ -38,12 +37,9 @@ interface QuoteInfo {
   realtorName: string;
 }
 
-export default function ListCard({
-  property,
-  addToComparison,
-  forSale,
-}: ListCardProps) {
+export default function ListCard({ property, addToComparison }: ListCardProps) {
   const [showInvestButton, setShowInvestButton] = useState(true);
+  console.log("showInvestButton", showInvestButton);
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
 

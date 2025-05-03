@@ -254,10 +254,6 @@ export default function Listing() {
                   property={property}
                   key={property.id}
                   addToComparison={addToComparison}
-                  forSale={
-                    (propertyList as PropertyFromContract[])[property.id - 1]
-                      .forSale
-                  }
                 />
               ))}
             </div>

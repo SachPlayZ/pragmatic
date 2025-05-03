@@ -9,7 +9,6 @@ import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { formatEther } from "viem";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 
 // import { Button } from "@/components/ui/button";
 
@@ -56,6 +55,7 @@ export default function Dashboard() {
   const [investmentProperties, setInvestmentProperties] = useState<Property[]>(
     []
   );
+  console.log("investmentProperties", investmentProperties);
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
 
   // Fetch dashboard stats with proper typing
