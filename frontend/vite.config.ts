@@ -9,4 +9,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api/proxy": {
+        target: "https://devnet.dplabs-internal.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/proxy/, ""),
+      },
+    },
+  },
 });
