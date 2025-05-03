@@ -25,6 +25,6 @@ export const config = createConfig({
   chains,
   connectors,
   transports: {
-    [customChain.id]: http("/api/proxy"),
+    [customChain.id]: http("http://localhost:3000/api/proxy"),
   },
 });

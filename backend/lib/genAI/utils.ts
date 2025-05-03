@@ -1,38 +1,35 @@
+import Groq from 'groq-sdk';
+
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
 export const generate = async (
-    query: string,
-    model: string = "meta-llama/Meta-Llama-3-8B-Instruct-Turbo",
-    systemPrompt?: string,
-    context?: { role: string; content: string }[]
+  query: string,
+  model: string,
+  systemPrompt?: string,
+  context?: { role: string; content: string }[],
 ): Promise<string> => {
-    const BEYOND_API_URL = process.env.BEYOND_BASE_URL + "/api/chat/completions";
+  const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] =
+    [];
 
-    const messages: { role: string; content: string }[] = [];
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
 
-    if (context) {
-        messages.push(...context);
-    }
+  if (context) {
+    messages.push(
+      ...(context as {
+        role: 'system' | 'user' | 'assistant';
+        content: string;
+      }[]),
+    );
+  }
 
-    if (systemPrompt) {
-        messages.push({ role: "system", content: systemPrompt });
-    }
+  messages.push({ role: 'user', content: query });
 
-    messages.push({ role: "user", content: query });
-    const body = {
-        "model": model,
-        "messages": messages,
-    };
-    const response = await fetch(BEYOND_API_URL, {
-        method: "POST",
-        headers: new Headers([
-            ["x-api-key", process.env.BEYOND_API_KEY || ""],
-            ["Content-Type", "application/json"],
-        ]),
-        body: JSON.stringify(body),
-    });
+  const chatCompletion = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages,
+  });
 
-    if (!response.ok) {
-        throw new Error(`Beyond API error: ${response.statusText}`);
-    }
-    const res = await response.json();
-    return res.choices[0].message.content;
-}
+  return chatCompletion.choices[0]?.message?.content || '';
+};
