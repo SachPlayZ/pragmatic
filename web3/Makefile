@@ -1,6 +1,7 @@
 compile:
 	npx hardhat compile
-
+	npx hardhat run ignition/modules/Check.ts --network pharos-devnet
+	
 deploy:
 	npx hardhat run ignition/modules/Check.ts --network pharos-devnet
 

@@ -10,14 +10,15 @@ import { formatEther } from "viem";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-// import { Button } from "@/components/ui/button";
-
-// Define types for our contract return values
-type DashboardStats = readonly [bigint, bigint, bigint]; // [multiplier, totalListings, totalSpentAVAX]
+type DashboardStats = readonly [bigint, bigint];
 
 interface ListingInfo {
   propertyId: bigint;
   tokenPrice: bigint;
+  resalePrice: bigint;
+  forSale: boolean;
+  totalValue: bigint;
+  totalInvestedTokens: bigint;
 }
 
 interface InvestmentInfo {
@@ -50,21 +51,24 @@ interface Property {
 
 export default function Dashboard() {
   const { address } = useAccount();
-  const [avaxUsdPrice, setAvaxUsdPrice] = useState<number>(0);
+  const [ETHUsdPrice, setETHUsdPrice] = useState<number>(0);
   const [properties, setProperties] = useState<Property[]>([]);
   const [investmentProperties, setInvestmentProperties] = useState<Property[]>(
     []
   );
-  console.log("investmentProperties", investmentProperties);
-  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [_stats, setStats] = useState<DashboardStats | undefined>(undefined);
+  const [_isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [totalInvestedETH, setTotalInvestedETH] = useState<bigint>(0n);
 
-  // Fetch dashboard stats with proper typing
-  const { data: dashboardStats, isLoading: loadingStats } = useReadContract({
+  const { data: dashboardStats, refetch: refetchMyStats } = useReadContract({
     address: contractAddress,
     abi: contractAbi,
     functionName: "getDashboardStats",
-    args: [address],
-  }) as { data: DashboardStats | undefined; isLoading: boolean };
+    args: [address || "0x0000000000000000000000000000000000000000"],
+  }) as {
+    data: DashboardStats | undefined;
+    refetch: () => Promise<any>;
+  };
 
   // Fetch wallet listings with proper typing
   const { data: listings, isLoading: loadingListings } = useReadContract({
@@ -91,9 +95,42 @@ export default function Dashboard() {
   }) as { data: bigint | undefined; isLoading: boolean };
 
   useEffect(() => {
-    console.log("investments: ", investments);
     console.log("listings: ", listings);
   }, [investments, listings]);
+
+  useEffect(() => {
+    if (investments && investments.length > 0) {
+      const total = investments.reduce(
+        (sum, investment) => sum + investment.investmentAmount,
+        0n
+      );
+      console.log("Total invested ETH calculated:", formatEther(total));
+      setTotalInvestedETH(total);
+    } else {
+      setTotalInvestedETH(0n);
+    }
+  }, [investments]);
+
+  useEffect(() => {
+    if (!address) return;
+
+    console.log("Setting up refetch interval");
+    const intervalId = setInterval(() => {
+      refetchMyStats()
+        .then((result) => {
+          console.log("Refetching stats successful: ", result);
+          setStats(result.data);
+        })
+        .catch((error) => {
+          console.error("Error during refetch: ", error);
+        });
+    }, 5000);
+
+    return () => {
+      console.log("Cleaning up refetch interval");
+      clearInterval(intervalId);
+    };
+  }, [refetchMyStats, address]);
 
   async function getListingsFromBackend(address: string) {
     try {
@@ -119,6 +156,8 @@ export default function Dashboard() {
   }
 
   async function getPropertiesByIds(ids: number[]) {
+    if (!ids.length) return [];
+
     try {
       const response = await fetch(
         `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/property`
@@ -128,9 +167,9 @@ export default function Dashboard() {
       }
       const data = await response.json();
       const filteredData = data.filter((prop: Property) =>
-        ids.includes(prop.id + 1)
+        ids.includes(prop.id)
       );
-      console.log("Filtered data", filteredData);
+      console.log("Filtered properties by IDs:", filteredData);
       return filteredData as Property[];
     } catch (error) {
       console.error("Error fetching properties by IDs:", error);
@@ -139,39 +178,32 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (dashboardStats) {
+    if (dashboardStats && address) {
       console.log("Dashboard stats", dashboardStats);
-      setAvaxUsdPrice(Number(dashboardStats[0]) / 1e8);
-      if (address) {
-        getListingsFromBackend(address).then(setProperties);
-        console.log("Properties", properties);
-      }
+      setETHUsdPrice(Number(dashboardStats[0]) / 100);
+      getListingsFromBackend(address).then(setProperties);
     }
   }, [dashboardStats, address]);
 
   useEffect(() => {
-    if (investments) {
+    if (investments && investments.length > 0) {
       console.log("Investments", investments);
       const propertyIds = investments.map(
         (investment) => Number(investment.propertyId) + 1
       );
-      console.log(propertyIds);
-      getPropertiesByIds(propertyIds).then(setInvestmentProperties);
-      // console.log("Investment properties", investmentProperties);
-    }
-  }, [investments]);
-
-  useEffect(() => {
-    if (properties.length > 0) {
-      properties.forEach((property) => {
-        console.log("Property name:", property.name);
+      console.log("Property IDs to fetch:", propertyIds);
+      getPropertiesByIds(propertyIds).then((props) => {
+        console.log("Fetched investment properties:", props);
+        setInvestmentProperties(props);
       });
     }
-  }, [properties]);
+  }, [investments]);
 
   const { writeContractAsync } = useWriteContract();
 
   async function handleWithdraw(id: number) {
+    if (!id) return;
+
     console.log("Withdrawing from property:", id);
     try {
       const tx = await writeContractAsync(
@@ -182,10 +214,10 @@ export default function Dashboard() {
           args: [id - 1],
         },
         {
-          onSuccess(data: any) {
+          onSuccess(data) {
             console.log("Burn successful!", data);
           },
-          onSettled(data: any, error: any) {
+          onSettled(data, error) {
             if (error) {
               console.error("Error on settlement:", error);
             } else {
@@ -212,46 +244,37 @@ export default function Dashboard() {
         <div className="flex-grow grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <p className="text-white/70">Total Investments</p>
+
             <p className="text-3xl font-bold text-[#D0FD3E]">
-              $
-              {loadingInvestments
-                ? "Loading..."
-                : (
-                    Number(formatEther(dashboardStats?.[2] ?? 0n)) *
-                      avaxUsdPrice || 0
-                  ).toLocaleString()}
+              {investments ? investments.length.toString() : "0"}
             </p>
           </div>
           <div className="space-y-2">
             <p className="text-white/70">Total Listings</p>
             <p className="text-3xl font-bold text-[#D0FD3E]">
-              {loadingStats
-                ? "Loading..."
-                : (dashboardStats?.[1] ?? 0n).toString()}
+              {listings ? listings?.length.toString() : "0"}
             </p>
           </div>
           <div className="space-y-2">
-            <p className="text-white/70">Total AVAX Spent</p>
-            <div className="flex gap-2">
+            <p className="text-white/70">Total ETH Spent</p>
+            <div className="flex items-center gap-2">
               <p className="text-3xl font-bold text-[#D0FD3E]">
-                {loadingStats
-                  ? "Loading..."
-                  : `${formatEther(dashboardStats?.[2] ?? 0n)}`}
+                {totalInvestedETH > 0 ? formatEther(totalInvestedETH) : "0.00"}
               </p>
-              <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
+              <span className="text-3xl font-bold text-[#D0FD3E]">ETH</span>
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-white/70">AVAX Price</p>
+            <p className="text-white/70">ETH Price</p>
             <p className="text-3xl font-bold text-[#D0FD3E]">
-              ${avaxUsdPrice.toFixed(2)}
+              ${ETHUsdPrice ? ETHUsdPrice.toFixed(2) : "0.00"}
             </p>
           </div>
         </div>
       ),
     },
     {
-      title: "Current Balance",
+      title: "Current PROP Balance",
       icon: <Wallet className="w-6 h-6 text-[#0A1A1F]" />,
       span: "col-span-6 md:col-span-2",
       height: "h-[300px]",
@@ -277,44 +300,46 @@ export default function Dashboard() {
             <ul className="space-y-4">
               {loadingInvestments ? (
                 <li className="text-white">Loading investments...</li>
-              ) : investments?.length ? (
-                investments.map((investment, index) => (
-                  <li
-                    key={`${investment.propertyId}-${index}`}
-                    className="bg-white/5 p-3 rounded-lg"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="text-white">
-                        {/* {investmentProperties.find(
-                          (prop) =>
-                            prop.id === Number(investment.propertyId) + 1
-                        )?.name || `Property #${investment.propertyId}`} */}
-                        {properties[index]?.name ||
-                          `Property #${investment.propertyId}`}
-                      </span>
-                      <span className="text-[#9EF01A] font-semibold">
-                        {formatEther(investment.investmentAmount)} AVAX
-                      </span>
+              ) : investments && investments.length > 0 ? (
+                investments.map((investment, index) => {
+                  // Find the matching property by ID
+                  const propertyId = Number(investment.propertyId) + 1;
+                  const investmentProperty = investmentProperties.find(
+                    (prop) => prop.id === propertyId
+                  );
+                  console.log("Investment Property", investmentProperty);
 
-                      <Button
-                        onClick={() => handleWithdraw(properties[index].id)}
-                      >
+                  return (
+                    <li
+                      key={`${investment.propertyId}-${index}`}
+                      className="bg-white/5 p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-white">
+                          {`${investmentProperty?.name}`}
+                        </span>
+                        <span className="text-[#9EF01A] font-semibold">
+                          {formatEther(investment.investmentAmount)} ETH
+                        </span>
+
+                        <Button
+                          onClick={() => handleWithdraw(propertyId)}
+                          disabled={!investment.actualRate}
+                        >
+                          {investment.actualRate > 0n
+                            ? "Withdraw"
+                            : "Not sold yet"}
+                        </Button>
+                      </div>
+                      <div className="text-sm text-white/70 mt-1">
+                        Return Rate:{" "}
                         {investment.actualRate > 0n
-                          ? "Withdraw"
-                          : "Withdraw (Proposed)"}
-                      </Button>
-                    </div>
-                    {/* <div className="w-[50%] py-2">
-                      <Progress value={Number(investment.investmentAmount)} />
-                    </div> */}
-                    <div className="text-sm text-white/70 mt-1">
-                      Finalized Return Rate:{" "}
-                      {investment.actualRate > 0n
-                        ? `${Number(investment.actualRate)}%`
-                        : `${Number(investment.proposedRate)}% (Proposed)`}
-                    </div>
-                  </li>
-                ))
+                          ? `${Number(investment.actualRate)}% (Finalized)`
+                          : `${Number(investment.proposedRate)}% (Proposed)`}
+                      </div>
+                    </li>
+                  );
+                })
               ) : (
                 <li className="text-white/70">No investments found</li>
               )}
@@ -332,29 +357,57 @@ export default function Dashboard() {
         <div className="flex flex-col h-full">
           <ScrollArea className="flex-grow pr-4">
             <ul className="space-y-4">
-              {loadingListings || isLoadingProperties ? (
+              {loadingListings ? (
                 <li className="text-white">Loading listings...</li>
               ) : listings && listings.length > 0 ? (
-                listings.map((listing, index) => {
-                  const property = properties[index];
-                  return (
-                    <li
-                      key={`${listing.propertyId}-${index}`}
-                      className="flex justify-between items-center bg-white/5 p-3 rounded-lg"
-                    >
-                      <span className="text-white">
-                        {property?.name || `Property #${listing.propertyId}`}
-                      </span>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-white">Price</span>
-                        <div className="text-[#9EF01A] font-semibold">
-                          {Number(property?.price) / 10 ** 18}
-                        </div>
-                        <img className="h-8 w-8" src="/avax_lime.svg" alt="" />
+                listings.map((listing) => (
+                  <li
+                    key={`listing-${listing.propertyId}`}
+                    className="flex justify-between items-center bg-white/5 p-3 rounded-lg"
+                  >
+                    <span className="text-white">
+                      {properties?.find(
+                        (p) => p.id === Number(listing.propertyId) + 1
+                      )?.name || `Property #${Number(listing.propertyId) + 1}`}
+                    </span>
+                    <div className="flex gap-2 items-center">
+                      <pre className="text-white">Listing Price</pre>
+                      <div className="text-[#9EF01A] font-semibold">
+                        {(Number(listing.totalValue) / 10 ** 18).toString()} ETH
                       </div>
-                    </li>
-                  );
-                })
+                      <div>
+                        {Number(listing.totalValue) ===
+                          Number(listing.totalInvestedTokens) / 1000 &&
+                          !listing.forSale && (
+                            <div className="text-[#9EF01A] font-semibold flex items-center">
+                              | <pre className="text-white"> Sold at </pre>
+                              {(
+                                Number(listing?.resalePrice) /
+                                10 ** 18
+                              ).toString()}{" "}
+                              ETH
+                            </div>
+                          )}
+                      </div>
+                      <div>
+                        {Number(listing.totalValue) !==
+                          Number(listing.totalInvestedTokens) / 1000 && (
+                          <div className="text-[#9EF01A] font-semibold flex items-center">
+                            |{" "}
+                            <pre className="text-white"> Total Invested: </pre>
+                            {(
+                              Number(listing?.totalInvestedTokens) /
+                              10 /
+                              Number(listing.totalValue)
+                            ).toString()}
+                            %
+                          </div>
+                        )}
+                      </div>
+                      {/* <img className="h-8 w-8" src="/ETH_lime.svg" alt="" /> */}
+                    </div>
+                  </li>
+                ))
               ) : (
                 <li className="text-white/70">No listings found</li>
               )}
@@ -365,7 +418,7 @@ export default function Dashboard() {
     },
   ];
 
-  return (
+  return address ? (
     <div className="pt-[15vh] min-h-screen bg-[#0A1A1F] relative overflow-hidden p-6">
       {/* Gradient Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -374,10 +427,19 @@ export default function Dashboard() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">
-          Investor Dashboard
-        </h1>
-
+        <motion.h1
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 md:mb-12 text-center mt-20 md:mt-6 px-4"
+        >
+          <span className="bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mt-10">
+            Your
+          </span>{" "}
+          <span className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">
+            Dashboard
+          </span>
+        </motion.h1>
         <div className="grid grid-cols-6 gap-6">
           {processedDashboardItems.map((item, index) => (
             <motion.div
@@ -407,6 +469,12 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+    </div>
+  ) : (
+    <div className="flex items-center justify-center min-h-screen bg-[#0A1A1F]">
+      <h1 className="text-4xl font-bold text-white">
+        Please connect your wallet to view the dashboard.
+      </h1>
     </div>
   );
 }

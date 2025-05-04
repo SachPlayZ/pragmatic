@@ -376,7 +376,7 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "ONE_AVAX_IN_PROP",
+    name: "ONE_ETH_IN_PROP",
     outputs: [
       {
         internalType: "uint256",
@@ -389,7 +389,7 @@ export const contractAbi = [
   },
   {
     inputs: [],
-    name: "ONE_PROP_IN_AVAX",
+    name: "ONE_PROP_IN_ETH",
     outputs: [
       {
         internalType: "uint256",
@@ -590,19 +590,6 @@ export const contractAbi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getChainlinkDataFeedLatestAnswer",
-    outputs: [
-      {
-        internalType: "int256",
-        name: "",
-        type: "int256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",
@@ -620,11 +607,6 @@ export const contractAbi = [
       {
         internalType: "uint256",
         name: "totalListings",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "totalSpentAVAX",
         type: "uint256",
       },
     ],
@@ -854,6 +836,26 @@ export const contractAbi = [
           {
             internalType: "uint256",
             name: "tokenPrice",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "resalePrice",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "forSale",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "totalInvestedTokens",
             type: "uint256",
           },
         ],
@@ -1174,4 +1176,4 @@ export const contractAbi = [
   },
 ];
 
-export const contractAddress = "0x632bE79998304372074F291e78Daf55c6e959C03";
+export const contractAddress = "0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a";

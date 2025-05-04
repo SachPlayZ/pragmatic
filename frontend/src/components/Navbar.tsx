@@ -99,7 +99,11 @@ const Navbar = () => {
               (item) => (
                 <Link
                   key={item}
-                  to={`/${item.toLowerCase().replace(" ", "-")}`}
+                  to={`${
+                    item !== "How it Works"
+                      ? `${item.toLowerCase().replace(" ", "-")}`
+                      : "https://pragmatic.gitbook.io/tokenx"
+                  }`}
                   className="text-white/80 hover:text-white transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

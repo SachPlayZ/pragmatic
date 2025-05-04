@@ -4,7 +4,8 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+
+// import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title PropertyToken
@@ -14,12 +15,12 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  */
 contract Check is ERC20, Ownable {
     // Data Feed
-    AggregatorV3Interface internal dataFeed;
+    // AggregatorV3Interface internal dataFeed;
 
     struct Property {
         uint256 id;
         address owner;
-        uint256 totalValue; // AVAX
+        uint256 totalValue; // ETH
         uint256 totalTokens; // PROP
         bool isListed; // Can be removed
         uint256 rentalIncome; // Later
@@ -59,6 +60,10 @@ contract Check is ERC20, Ownable {
     struct ListingInfo {
         uint256 propertyId;
         uint256 tokenPrice;
+        uint256 totalValue; // Original property value
+        uint256 resalePrice; // Resale price if property is for sale
+        bool forSale; // Whether property is for sale
+        uint256 totalInvestedTokens; // Total tokens invested in the property
     }
 
     struct InvestmentInfo {
@@ -73,11 +78,11 @@ contract Check is ERC20, Ownable {
 
     // Platform fee percentage (2%)
     uint256 public constant PLATFORM_FEE = 5;
-    // Conversion rate between AVAX and PROP (NOT YET IMPLEMENTED)
-    uint256 public constant ONE_PROP_IN_AVAX = 1;
+    // Conversion rate between ETH and PROP (NOT YET IMPLEMENTED)
+    uint256 public constant ONE_PROP_IN_ETH = 1;
 
     // Will Update
-    uint256 public constant ONE_AVAX_IN_PROP = 1000;
+    uint256 public constant ONE_ETH_IN_PROP = 1000;
 
     // Mapping to store properties
     mapping(uint256 => Property) public property;
@@ -122,11 +127,7 @@ contract Check is ERC20, Ownable {
     );
     event PropertyBought(uint256 propertyId, address newOwner, uint256 price);
 
-    constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {
-        dataFeed = AggregatorV3Interface(
-            0x5498BB86BC934c8D34FDA08E81D444153d0D06aD
-        );
-    }
+    constructor() ERC20("Property Token", "PROP") Ownable(msg.sender) {}
 
     /**
      * @dev Lists a new property for tokenization
@@ -137,8 +138,8 @@ contract Check is ERC20, Ownable {
     function listProperty(uint256 _totalValue) external {
         require(_totalValue > 0, "Invalid property value");
 
-        // One AVAX = 1000 PROP here for testing purposes
-        uint256 _totalTokens = _totalValue * ONE_AVAX_IN_PROP;
+        // One ETH = 1000 PROP here for testing purposes
+        uint256 _totalTokens = _totalValue * ONE_ETH_IN_PROP;
         uint256 propertyId = propertyCounter++;
 
         property[propertyId] = Property({
@@ -204,7 +205,7 @@ contract Check is ERC20, Ownable {
     event Debug(string message, uint256 value);
 
     // INVEST FOR CONTRACT
-    // msg.value IN AVAX
+    // msg.value IN ETH
     function invest(
         uint256 _propertyId,
         uint256 _proposedReturnRate
@@ -396,7 +397,7 @@ contract Check is ERC20, Ownable {
     }
 
     /**
-     * @dev Allows a user to buy a property by paying the resale price in AVAX.
+     * @dev Allows a user to buy a property by paying the resale price in ETH.
      * Transfers ownership to the buyer and marks the property as not for sale.
      * @param _propertyId The ID of the property to buy.
      */
@@ -408,7 +409,7 @@ contract Check is ERC20, Ownable {
         require(prop.resalePrice > 0, "Invalid resale price");
 
         // Ensure the buyer sends the exact resale price
-        require(msg.value == prop.resalePrice, "Incorrect AVAX amount sent");
+        require(msg.value == prop.resalePrice, "Incorrect ETH amount sent");
 
         // Transfer funds to the contract (this happens implicitly with msg.value)
 
@@ -436,25 +437,18 @@ contract Check is ERC20, Ownable {
         require(investment.exists, "No investment found");
         require(investment.tokenAmount > 0, "No tokens to burn");
 
-        // Calculate original investment amount plus return
         uint256 originalInvestment = investment.investmentAmount;
         uint256 returnAmount = (originalInvestment * prop.finalReturnRate) /
             100;
         uint256 totalDue = originalInvestment + returnAmount;
 
-        require(
-            propertyLiquidity[_propertyId] >= totalDue,
-            "Insufficient liquidity"
-        );
+        // require(
+        //     propertyLiquidity[_propertyId] >= totalDue,
+        //     "Insufficient liquidity"
+        // );
 
         // Store token amount to burn
         uint256 tokensToBurn = investment.tokenAmount;
-
-        // Clear investment record
-        delete investments[msg.sender][_propertyId];
-
-        // Update property liquidity
-        propertyLiquidity[_propertyId] -= totalDue;
 
         // Burn tokens and transfer ETH
         _burn(msg.sender, tokensToBurn);
@@ -462,55 +456,69 @@ contract Check is ERC20, Ownable {
         (bool success, ) = payable(msg.sender).call{value: totalDue}("");
         require(success, "ETH transfer failed");
 
+        // Clear investment record
+        delete investments[msg.sender][_propertyId];
+
+        // Update property liquidity
+        propertyLiquidity[_propertyId] -= totalDue;
+
         emit TokensBurned(msg.sender, _propertyId, tokensToBurn, totalDue);
     }
 
-    function getChainlinkDataFeedLatestAnswer() public view returns (int) {
-        // prettier-ignore
-        (
-            /* uint80 roundID */,
-            int answer,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
-        ) = dataFeed.latestRoundData();
-        return answer;
-    }
+    /**
+     * @dev Safe getter for Chainlink data feed that won't revert
+     * @return price from data feed or 0 if there's an error
+     */
+    // function getChainlinkDataFeedLatestAnswer() public view returns (int) {
+    //     try dataFeed.latestRoundData() returns (
+    //         uint80,
+    //         int256 price,
+    //         uint256,
+    //         uint256,
+    //         uint80
+    //     ) {
+    //         return price;
+    //     } catch {
+    //         return 0; // Return a safe default value if the call fails
+    //     }
+    // }
 
     /**
      * @dev Retrieves overall statistics for a given wallet address
      * @param _wallet Address to get stats for
-     * @return multiplier Current AVAX to USD multiplier
+     * @return multiplier Current ETH to USD multiplier
      * @return totalListings Number of properties listed by this wallet
-     * @return totalSpentAVAX Total AVAX spent on investments
      */
     function getDashboardStats(
         address _wallet
-    )
-        external
-        view
-        returns (int multiplier, uint256 totalListings, uint256 totalSpentAVAX)
-    {
+    ) external view returns (int multiplier, uint256 totalListings) {
+        // Initialize counters
+        totalListings = 0;
+
         // Count listings and accumulate investments
-        for (uint256 i = 0; i < allPropertyIds.length; i++) {
-            uint256 propertyId = allPropertyIds[i];
-            Property storage prop = property[propertyId];
+        if (_wallet != address(0)) {
+            for (uint256 i = 0; i < allPropertyIds.length; i++) {
+                uint256 propertyId = allPropertyIds[i];
+                Property storage prop = property[propertyId];
 
-            // Count if this wallet is the property owner
-            if (prop.owner == _wallet) {
-                totalListings++;
-            }
-
-            // Add up investments if they exist
-            Investment storage investment = investments[_wallet][propertyId];
-            if (investment.exists) {
-                totalSpentAVAX += investment.investmentAmount;
+                // Count if this wallet is the property owner
+                if (prop.owner == _wallet) {
+                    totalListings++;
+                }
             }
         }
-        multiplier = getChainlinkDataFeedLatestAnswer();
-        return (multiplier, totalListings, totalSpentAVAX);
+
+        // Get multiplier safely
+        multiplier = 183139; // Represented as integer, divide by 100 when using
+
+        return (multiplier, totalListings);
     }
 
+    /**
+     * @dev Gets all active listings for a specific wallet
+     * @param _wallet Address to get listings for
+     * @return Array of ListingInfo structs containing property details
+     */
     /**
      * @dev Gets all active listings for a specific wallet
      * @param _wallet Address to get listings for
@@ -539,12 +547,16 @@ contract Check is ERC20, Ownable {
             Property storage prop = property[propertyId];
             if (prop.owner == _wallet && prop.isListed) {
                 // Calculate token price: totalValue / totalTokens
-                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_AVAX) /
+                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_ETH) /
                     prop.totalTokens;
 
                 listings[currentIndex] = ListingInfo({
                     propertyId: propertyId,
-                    tokenPrice: tokenPrice
+                    tokenPrice: tokenPrice,
+                    totalValue: prop.totalValue,
+                    resalePrice: prop.resalePrice,
+                    forSale: prop.forSale,
+                    totalInvestedTokens: prop.totalInvestedTokens
                 });
                 currentIndex++;
             }
@@ -582,7 +594,7 @@ contract Check is ERC20, Ownable {
 
             if (investment.exists) {
                 Property storage prop = property[propertyId];
-                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_AVAX) /
+                uint256 tokenPrice = (prop.totalValue * ONE_PROP_IN_ETH) /
                     prop.totalTokens;
 
                 // Find the hiked price from properties on sale
