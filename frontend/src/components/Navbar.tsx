@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { CuboidIcon as Cube, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useState } from "react";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <header className="fixed top-0 w-full z-50">
@@ -23,11 +24,17 @@ const Navbar = () => {
             <motion.div
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.3 }}
+              onClick={() => navigate("/")}
             >
-              <Cube className="h-8 w-8 text-[#D0FD3E]" />
+              <img
+                rel="icon"
+                src="/logo.png"
+                alt="Nest Protocol Logo"
+                className="h-8 w-8"
+              />
             </motion.div>
             <Link to="/" className="text-white font-bold text-xl">
-              TOKENX
+              Nest Protocol
             </Link>
           </div>
 

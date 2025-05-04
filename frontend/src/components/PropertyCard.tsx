@@ -52,7 +52,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <p className="text-white/80 mb-2">{property.location}</p>
         <div className="flex justify-between items-center mb-2">
           <span className="text-lg font-bold bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent">
-            {Number(property.price.split(" ")[0])} $AVAX
+            {Number(property.price.split(" ")[0])} ETH
           </span>
           <span className="text-white/80">
             {property.bedrooms} beds | {property.sqft} sqft
