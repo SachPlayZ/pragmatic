@@ -11,7 +11,13 @@ Nest Protocol is transforming the way people buy, sell, and invest in real estat
 
 Powered by blockchain and our native ERC-20 token PROP, we enable fractional ownership, instant property transactions, and a fully decentralized marketplace. Dive into real estate like never before—borderless, permissionless, and open to everyone.
 
-With Nest Protocol, real estate is no longer reserved for the wealthy. It's time to democratize property investment.
+Backed by blockchain and our native ERC-20 token PROP, we bring you fractional ownership, instant transactions, and a decentralized property marketplace. Experience real estate in a way that’s borderless, intelligent, and open to all.
+
+With powerful AI tools like a Real Estate Chatbot for on-demand queries and a Comparative AI Agent that analyzes and contrasts properties with pros and cons, Nest Protocol empowers informed decisions like never before.
+
+With Nest Protocol, property investment isn’t just easier—it’s smarter. It’s time to democratize real estate.
+
+Nest Protocol is redefining how people invest in, buy, and sell real estate. Whether you're a homeowner seeking fast liquidity, a new investor starting with minimal capital, or a buyer exploring premium properties—Nest Protocol is built for you
 </div>
 
 <h3 align="center">
@@ -23,11 +29,6 @@ With Nest Protocol, real estate is no longer reserved for the wealthy. It's time
   <a href="https://pharosscan.xyz/address/0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a">View on Explorer</a>
 </h4>
 
-
-
-<h2>
-  How to use:
-</h2>
 
 *** 
 The Backend isn't hosted as of right now. Feel free to email at srijansarkar2705@gmail.com if you got questions or wanna use it. Cheers!
