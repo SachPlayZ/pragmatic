@@ -47,11 +47,11 @@ export default function Home() {
 
   const sliderSettings = {
     dots: true,
-    infinite: true,
+    infinite: properties.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: properties.length > 1,
     autoplaySpeed: 3000,
     beforeChange: (_current: number, next: number) => setCurrentSlide(next),
   };

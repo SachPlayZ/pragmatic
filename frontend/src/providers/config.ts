@@ -7,8 +7,8 @@ const customChain = {
   name: "Pharos Devnet",
   nativeCurrency: {
     decimals: 18,
-    name: "Pharos",
-    symbol: "PHR",
+    name: "Ethereum",
+    symbol: "ETH",
   },
   rpcUrls: {
     public: { http: ["https://devnet.dplabs-internal.com"] },
