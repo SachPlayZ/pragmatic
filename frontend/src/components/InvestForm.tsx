@@ -30,7 +30,7 @@ export default function InvestForm(props: any) {
       .refine((val) => val <= Number(property.price) / 10 ** 18, {
         message: `Amount must be less than ${
           Number(property.price) / 10 ** 18
-        } AVAX`,
+        } ETH`,
       }),
     proposedRate: z
       .string()
@@ -95,11 +95,11 @@ export default function InvestForm(props: any) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (in AVAX)</FormLabel>
+                <FormLabel>Amount (in ETH)</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="Amount in AVAX"
+                    placeholder="Amount in ETH"
                     {...field}
                     className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-lime-400 focus:border-lime-400"
                   />

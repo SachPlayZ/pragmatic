@@ -1,55 +1,71 @@
-import { useState, useRef, useEffect } from 'react'
-import { X, User, Bot, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRandomFact } from '../hooks/useRandomFact'
+import { useState, useRef, useEffect } from "react";
+import { X, User, Bot, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useRandomFact } from "../hooks/useRandomFact";
 
 interface ChatOverlayProps {
-  isOpen: boolean
-  onClose: () => void
-  aiName: string
-  facts: string[]
+  isOpen: boolean;
+  onClose: () => void;
+  aiName: string;
+  facts: string[];
 }
 
-export function ChatOverlay({ isOpen, onClose, aiName, facts }: ChatOverlayProps) {
-  const [messages, setMessages] = useState<{ content: string; role: 'user' | 'ai' }[]>([])
-  const [input, setInput] = useState('')
-  const currentFact = useRandomFact(facts)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+export function ChatOverlay({
+  isOpen,
+  onClose,
+  aiName,
+  facts,
+}: ChatOverlayProps) {
+  const [messages, setMessages] = useState<
+    { content: string; role: "user" | "ai" }[]
+  >([]);
+  const [input, setInput] = useState("");
+  const currentFact = useRandomFact(facts);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (input.trim()) {
       const fetchResponse = async () => {
-        const response = await fetch(`${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getAnswer`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query: input, context: messages }),
-        })
-        const data = await response.json()
-        return data.answer
-      }
-      setMessages([...messages, { content: input, role: 'user' }])
-      setInput('')
+        const response = await fetch(
+          `${import.meta.env.VITE_PUBLIC_BACKEND_URL}/getAnswer`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query: input, context: messages }),
+          }
+        );
+        const data = await response.json();
+        return data.answer;
+      };
+      setMessages([...messages, { content: input, role: "user" }]);
+      setInput("");
       setTimeout(async () => {
-        const answer = await fetchResponse()
-        setMessages(prev => [...prev, { content: answer, role: 'ai' }])
-      }, 1000)
+        const answer = await fetchResponse();
+        setMessages((prev) => [...prev, { content: answer, role: "ai" }]);
+      }, 1000);
     }
-  }
+  };
 
   const handleRefresh = () => {
-    setMessages([])
-  }
+    setMessages([]);
+  };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
@@ -80,20 +96,24 @@ export function ChatOverlay({ isOpen, onClose, aiName, facts }: ChatOverlayProps
             <div
               key={index}
               className={`mb-4 flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
+                message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
               <div
                 className={`flex max-w-[80%] items-start space-x-2 ${
-                  message.role === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'
+                  message.role === "user"
+                    ? "flex-row-reverse space-x-reverse"
+                    : "flex-row"
                 }`}
               >
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    message.role === 'user' ? 'bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A]' : 'bg-white/10'
+                    message.role === "user"
+                      ? "bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A]"
+                      : "bg-white/10"
                   }`}
                 >
-                  {message.role === 'user' ? (
+                  {message.role === "user" ? (
                     <User className="h-5 w-5 text-[#0A1A1F]" />
                   ) : (
                     <Bot className="h-5 w-5 text-white" />
@@ -101,9 +121,9 @@ export function ChatOverlay({ isOpen, onClose, aiName, facts }: ChatOverlayProps
                 </div>
                 <div
                   className={`rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F]'
-                      : 'bg-white/10 text-white'
+                    message.role === "user"
+                      ? "bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F]"
+                      : "bg-white/10 text-white"
                   }`}
                 >
                   {message.content}
@@ -121,7 +141,10 @@ export function ChatOverlay({ isOpen, onClose, aiName, facts }: ChatOverlayProps
               placeholder="Type your message..."
               className="flex-grow bg-white/5 text-white placeholder-white/50 border-white/10"
             />
-            <Button type="submit" className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F] hover:shadow-lg hover:shadow-[#D0FD3E]/20 transition-all">
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] text-[#0A1A1F] hover:shadow-lg hover:shadow-[#D0FD3E]/20 transition-all"
+            >
               Send
             </Button>
           </form>
@@ -129,6 +152,5 @@ export function ChatOverlay({ isOpen, onClose, aiName, facts }: ChatOverlayProps
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
-

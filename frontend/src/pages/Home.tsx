@@ -37,6 +37,7 @@ export default function Home() {
       .then((data) => {
         setProperties(data);
         setIsLoading(false);
+        console.log(properties);
       })
       .catch((error) => {
         console.error("Error fetching properties:", error);
@@ -152,7 +153,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <Slider {...sliderSettings}>
-                    {properties.map((property) => (
+                    {(properties || []).map((property) => (
                       <div key={property.id}>
                         <img
                           src={property.imageUrl || "/placeholder.svg"}

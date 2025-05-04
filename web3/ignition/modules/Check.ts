@@ -5,13 +5,13 @@ async function main() {
   const CheckCont = await ethers.getContractFactory("Check");
 
   console.log("Deploying Check...");
-  const Prop = await CheckCont.deploy();
+  const Check = await CheckCont.deploy();
 
   // Wait for the deployment to complete
-  await Prop.waitForDeployment();
+  await Check.waitForDeployment();
 
   // Get the deployed contract's address
-  const contractAddress = await Prop.getAddress();
+  const contractAddress = await Check.getAddress();
   console.log("Check deployed to:", contractAddress);
 }
 

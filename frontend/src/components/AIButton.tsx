@@ -1,8 +1,8 @@
-import { Bot } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Bot } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AIButtonProps {
-  onClick: () => void
+  onClick: () => void;
 }
 
 export function AIButton({ onClick }: AIButtonProps) {
@@ -13,6 +13,5 @@ export function AIButton({ onClick }: AIButtonProps) {
     >
       <Bot className="h-6 w-6" />
     </Button>
-  )
+  );
 }
-
