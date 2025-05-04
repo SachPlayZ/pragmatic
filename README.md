@@ -22,3 +22,12 @@ With Nest Protocol, real estate is no longer reserved for the wealthy. It's time
 <h4 align="center">
   <a href="https://pharosscan.xyz/address/0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a">View on Explorer</a>
 </h4>
+
+
+
+<h2>
+  How to use:
+</h2>
+
+*** 
+The Backend isn't hosted as of right now. Feel free to email at srijansarkar2705@gmail.com if you got questions or wanna use it. Cheers!
