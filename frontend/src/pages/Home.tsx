@@ -186,7 +186,7 @@ export default function Home() {
                         <p className="text-white font-medium">Price</p>
                         <p className="bg-gradient-to-r from-[#D0FD3E] to-[#9EF01A] bg-clip-text text-transparent font-bold">
                           {Number(properties[currentSlide].price) / 10 ** 18}
-                          $AVAX
+                          ETH
                         </p>
                       </div>
                     </div>
