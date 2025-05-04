@@ -154,13 +154,21 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
         <CardContent className="p-4">
           {/* Title and Price */}
           <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div>
+            {/* <div>
               <h3 className="text-lg font-semibold">{property.name}</h3>
-              <p className="text-xs text-gray-400">{property.address}</p>
+              <p className="text-xs text-gray-400 w-[80%]">
+                {property.address}
+              </p>
+            </div> */}
+            <div className="flex justify-between items-center w-full">
+              <div>
+                <h3 className="text-lg font-semibold">{property.name}</h3>
+                <p className="text-xs text-gray-400">{property.address}</p>
+                <span className="text-md font-bold text-lime-400 mt-2">
+                  {Number(property.price.toLocaleString()) / 10 ** 18} $ETH
+                </span>
+              </div>
             </div>
-            <span className="mt-2 sm:mt-0 text-md font-bold text-lime-400">
-              {Number(property.price.toLocaleString()) / 10 ** 18} $AVAX
-            </span>
           </div>
 
           {/* Details */}
@@ -179,16 +187,12 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
             <span className="flex items-center">{property.ammenities}</span>
           </div>
           {/* Token Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-400">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 space-x-1 text-sm text-gray-400">
             <div className="flex items-center">
-              <span>Token Price:</span>
+              <span>Token Price: </span>
               <span className="font-medium text-lime-400 flex gap-1 items-center">
-                <img
-                  src="/avax_lime.svg"
-                  alt="coin"
-                  className="w-4 h-4 ml-2 items-center mt-1"
-                />
                 {Number(property.tokenPrice.toString()) / 10 ** 18}
+                <span>ETH</span>
               </span>
             </div>
             <div className="justify-self-start sm:justify-self-end">
@@ -222,8 +226,8 @@ export default function ListCard({ property, addToComparison }: ListCardProps) {
                   Invest in {property.name}
                 </DialogTitle>
                 <p className="text-sm text-gray-400 mt-2">
-                  You are about to invest in {property.name}. Are you sure you
-                  want to proceed?
+                  You are about to invest in <strong>{property.name}</strong>.
+                  Are you sure you want to proceed?
                 </p>
                 <div className="mt-4 flex gap-4">
                   <InvestForm property={property} />
