@@ -18,6 +18,7 @@ With powerful AI tools like a Real Estate Chatbot for on-demand queries and a Co
 With Nest Protocol, property investment isn’t just easier—it’s smarter. It’s time to democratize real estate.
 
 Nest Protocol is redefining how people invest in, buy, and sell real estate. Whether you're a homeowner seeking fast liquidity, a new investor starting with minimal capital, or a buyer exploring premium properties—Nest Protocol is built for you
+
 </div>
 
 <h3 align="center">
@@ -26,9 +27,9 @@ Nest Protocol is redefining how people invest in, buy, and sell real estate. Whe
     Contract address: <strong>0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a</strong>
 </h3>
 <h4 align="center">
-  <a href="https://pharosscan.xyz/address/0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a">View on Explorer</a>
+  <a href="https://devnet.pharosscan.xyz/address/0xee8866FAA6A721a08db5d362Cf8ef881135e9c6a">View on Explorer</a>
 </h4>
 
+---
 
-*** 
 The Backend isn't hosted as of right now. Feel free to email at srijansarkar2705@gmail.com if you got questions or wanna use it. Cheers!
