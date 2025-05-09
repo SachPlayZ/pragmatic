@@ -10,6 +10,8 @@ async function main() {
   // Wait for the deployment to complete
   await Prop.waitForDeployment();
 
+  console.log(Prop);
+
   // Get the deployed contract's address
   const contractAddress = await Prop.getAddress();
   console.log("PropertyToken deployed to:", contractAddress);
