@@ -15,7 +15,7 @@ const customChain = {
     default: { http: ["https://devnet.dplabs-internal.com"] },
   },
   blockExplorers: {
-    default: { name: "PharosScan", url: "https://pharosscan.xyz/" },
+    default: { name: "PharosScan", url: "https://devnet.pharosscan.xyz/" },
   },
 } as const satisfies Chain;
 
