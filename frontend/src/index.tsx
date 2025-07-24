@@ -14,24 +14,24 @@ const root = createRoot(document.getElementById("root")!);
 const queryClient = new QueryClient();
 
 root.render(
-  <WagmiProvider config={config}>
-    <QueryClientProvider client={queryClient}>
-      <RainbowKitProvider
-        modalSize="wide"
-        initialChain={50002}
-        theme={darkTheme({
-          accentColor: "#9EF01A",
-          accentColorForeground: "#0A1A1F",
-          borderRadius: "large",
-          fontStack: "system",
-          overlayBlur: "large",
-        })}
-      >
-        <StrictMode>
-          <App />
-          <Toaster />
-        </StrictMode>
-      </RainbowKitProvider>
-    </QueryClientProvider>
-  </WagmiProvider>
+    <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider
+                modalSize="wide"
+                initialChain={11155111}
+                theme={darkTheme({
+                    accentColor: "#9EF01A",
+                    accentColorForeground: "#0A1A1F",
+                    borderRadius: "large",
+                    fontStack: "system",
+                    overlayBlur: "large",
+                })}
+            >
+                <StrictMode>
+                    <App />
+                    <Toaster />
+                </StrictMode>
+            </RainbowKitProvider>
+        </QueryClientProvider>
+    </WagmiProvider>
 );
